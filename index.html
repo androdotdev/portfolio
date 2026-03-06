@@ -1,10 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Rishabh Madhwal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andro | Backend Developer</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <h1>Hello, I'm Rishabh</h1>
-  <p>This site is hosted on GitHub Pages.</p>
+  <header class="hero">
+    <h1>Andro</h1>
+    <p>Backend Developer — Building systems, APIs and developer tools.</p>
+
+    <div class="links">
+      <a href="#projects">View Projects</a>
+      <a href="https://github.com/YOUR_GITHUB" target="_blank">GitHub</a>
+    </div>
+  </header>
+
+  <section id="projects">
+    <h2>Projects</h2>
+    <div class="project-grid" id="projects-container"></div>
+  </section>
+
+  <section id="experiments">
+    <h2>Experiments</h2>
+    <ul>
+      <li>Offline mesh chat</li>
+      <li>Remotion AI automation</li>
+      <li>Agent frameworks</li>
+    </ul>
+  </section>
+
+  <section class="stack">
+    <h2>Tech Stack</h2>
+    <ul>
+      <li>Node.js</li>
+      <li>Python</li>
+      <li>Express</li>
+      <li>Redis</li>
+      <li>Docker</li>
+    </ul>
+  </section>
+
+  <section id="github-stats">
+    <h2>GitHub Activity</h2>
+    <div id="github-container">
+      <!-- Stats load here via JS -->
+    </div>
+  </section>
+
+  <footer class="contact">
+    <h2>Contact</h2>
+    <p>
+      <a href="https://github.com/YOUR_GITHUB" target="_blank">GitHub</a> | 
+      <a href="mailto:your@email.com">Email</a>
+    </p>
+  </footer>
+
+  <script src="data/projects.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
