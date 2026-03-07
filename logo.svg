@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+
+  <!-- dark bg -->
+  <circle cx="100" cy="100" r="90" fill="#080f1a" />
+
+  <!-- clean single ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#4da6ff" stroke-width="2" />
+
+  <!-- RM clean, no glow -->
+  <text
+    x="101" y="118"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Arial Bold', sans-serif"
+    font-size="54"
+    font-weight="900"
+    letter-spacing="4"
+    fill="#4da6ff"
+  >RM</text>
+
+</svg>
