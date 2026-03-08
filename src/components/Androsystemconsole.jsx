@@ -1232,16 +1232,16 @@ function OverviewTab() {
           </div>
 
           {/* top languages */}
-          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: "10px 14px" }}>
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>top languages</div>
             {loading
-              ? <div style={{ display: "flex", gap: 8 }}>{Array.from({length:4}, (_,i) => <Skel key={i} w={60} h={14} />)}</div>
-              : <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              ? <div style={{ display: "flex", gap: 8, alignItems: "center" }}>{Array.from({length:4}, (_,i) => <Skel key={i} w={60} h={14} />)}</div>
+              : <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                   {topLangs.map(([lang, count]) => (
-                    <div key={lang} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div key={lang} style={{ display: "flex", alignItems: "center", gap: 5, lineHeight: 1 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: langColor(lang), flexShrink: 0 }} />
-                      <span style={{ fontSize: 10, color: "var(--text)" }}>{lang}</span>
-                      <span style={{ fontSize: 9, color: "var(--text3)" }}>{count}</span>
+                      <span style={{ fontSize: 10, color: "var(--text)", lineHeight: 1 }}>{lang}</span>
+                      <span style={{ fontSize: 9, color: "var(--text3)", lineHeight: 1 }}>{count}</span>
                     </div>
                   ))}
                 </div>
