@@ -2,7 +2,7 @@
 
 Portfolio built as a system observability dashboard.
 
-**→ [rishabhmadwal.qzz.io](https://rishabhmadwal.qzz.io)**
+**→ [rishabhmadhwal.qzz.io](https://rishabhmadhwal.qzz.io)**
 
 ---
 
