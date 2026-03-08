@@ -471,6 +471,17 @@ const css = `
   }
   .chart-bar:hover { background: var(--blue); }
 
+  /* ── MOBILE UTILITIES ── */
+  .hide-mobile { display: flex; }
+  @media (max-width: 600px) {
+    .hide-mobile { display: none !important; }
+    .topbar-codename { display: none; }
+    /* hero card full width on mobile */
+    .hero-identity { flex: 1 1 100% !important; }
+    /* activity bar simplified */
+    .activity-bar-label { display: none; }
+  }
+
   /* ── ABOUT PANEL ── */
   .about-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
   .about-key { font-size: 10px; color: var(--text3); width: 100px; flex-shrink: 0; }
@@ -479,11 +490,39 @@ const css = `
   .about-val a:hover { text-decoration: underline; }
 
   /* ── RESPONSIVE ── */
+
   @media (max-width: 900px) {
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .services-grid { grid-template-columns: 1fr; }
     .row { flex-direction: column; }
-    .col-2, .col-3, .col-4, .col-full { flex: 1 1 100%; }
+    .col-2, .col-3, .col-4, .col-full { flex: 1 1 100%; min-width: 0; }
+    .topbar-route { display: none; }
+    .topbar-sep { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .main-grid { padding: 8px 10px; gap: 8px; }
+    .topbar { padding: 0 12px; height: 40px; }
+    .topbar-clock { display: none; }
+    .topbar-codename { display: none; }
+    .nav-tabs { padding: 0 10px; overflow-x: auto; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab { padding: 4px 10px; font-size: 10px; white-space: nowrap; flex-shrink: 0; }
+    .nav-tabs > span:last-child { display: none; }
+    .stat-grid { gap: 8px; }
+    .stat-value { font-size: 20px; }
+    .panel-header { padding: 6px 10px; flex-wrap: wrap; gap: 4px; }
+    .panel-body { padding: 10px; }
+    .services-grid { gap: 8px; }
+    .log-stream { height: 320px; font-size: 10px; }
+    .log-ts { width: 48px; font-size: 9px; }
+    .log-level { width: 38px; font-size: 9px; }
+    .about-key { width: 80px; font-size: 9px; }
+    .gauge-label { width: 60px; font-size: 9px; }
+    .hero-identity { flex: 1 1 100% !important; }
+    /* hide entire graph tab content on mobile */
+    .graph-tab-content { display: none; }
+    .graph-tab-mobile { display: flex !important; }
   }
 `;
 
@@ -848,6 +887,17 @@ function GraphTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* mobile fallback */}
+      <div className="graph-tab-mobile" style={{
+        display: "none", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 10, padding: "40px 20px",
+        background: "var(--bg1)", border: "1px solid var(--border)", borderRadius: 4,
+      }}>
+        <span style={{ fontSize: 20 }}>⬡</span>
+        <span style={{ fontSize: 11, color: "var(--text2)", textAlign: "center" }}>Graph view available on desktop</span>
+        <span style={{ fontSize: 10, color: "var(--text3)", textAlign: "center" }}>Open on a larger screen to explore the tech stack graph</span>
+      </div>
+      <div className="graph-tab-content">
       <div className="panel">
         <div className="panel-header">
           <span className="panel-title">Tech Stack · Language & Tool Graph</span>
@@ -857,13 +907,10 @@ function GraphTab() {
         </div>
         <div style={{ padding: "14px 14px 8px" }}>
           {loading ? (
-            <div style={{ height: 380, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+            <div style={{ height: 280, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", gap: 3 }}>
                 {Array.from({length: 5}, (_, i) => (
-                  <div key={i} style={{
-                    width: 6, height: 6, borderRadius: "50%", background: "var(--blue)",
-                    animation: `pulse 1s ${i * 0.15}s infinite`,
-                  }} />
+                  <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", animation: `pulse 1s ${i * 0.15}s infinite` }} />
                 ))}
               </div>
               <span style={{ fontSize: 10, color: "var(--text3)" }}>fetching languages from {repos.length} repos...</span>
@@ -890,6 +937,7 @@ function GraphTab() {
         )}
       </div>
 
+      </div>{/* end graph-tab-content */}
       {/* category summary */}
       {!loading && Object.keys(byCategory).length > 0 && (
         <div className="row">
@@ -1100,8 +1148,9 @@ function OverviewTab() {
       {/* ── HERO ROW ── */}
       <div className="row">
         {/* identity card */}
-        <div style={{
-          flex: "0 0 300px", background: "var(--bg1)",
+        <div className="hero-identity" style={{
+          flex: "0 0 300px",
+          minWidth: 0, background: "var(--bg1)",
           border: "1px solid var(--border)", borderRadius: 4,
           padding: "18px 20px", display: "flex", flexDirection: "column", gap: 10,
           position: "relative", overflow: "hidden",
@@ -1574,7 +1623,7 @@ export default function App() {
           <div className="topbar-left">
             <span className="topbar-logo">⬡ Rishabh</span>
             <span className="topbar-sep">/</span>
-            <span style={{ fontSize: 10, color: "var(--cyan)", letterSpacing: "0.08em" }}>andro</span>
+            <span className="topbar-codename" style={{ fontSize: 10, color: "var(--cyan)", letterSpacing: "0.08em" }}>andro</span>
             <span className="topbar-sep">/</span>
             <span className="topbar-route">system-console</span>
             <span className="topbar-sep">/</span>
