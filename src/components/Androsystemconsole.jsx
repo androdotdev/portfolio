@@ -2,60 +2,84 @@ import { useState, useEffect, useRef } from "react";
 
 // ─── DATA LAYER ───────────────────────────────────────────────────────────────
 
-const SERVICES = [
-  {
-    id: "cli-agent",
-    name: "cli-agent",
-    status: "running",
-    uptime: "14d 6h 22m",
-    version: "v0.4.1",
-    description: "Terminal-based AI agent for orchestrating tools and executing dev workflows via structured reasoning loops.",
-    stack: ["Rust", "OpenAI API", "Tokio", "Clap"],
-    cpu: 34,
-    mem: 61,
-    requests: 1247,
-    port: 8001,
-  },
-  {
-    id: "jsonflow",
-    name: "jsonflow",
-    status: "running",
-    uptime: "9d 11h 04m",
-    version: "v0.2.0",
-    description: "Graph-based JSON transformation pipeline using dependency graphs and transformation nodes.",
-    stack: ["Go", "DAG Engine", "gRPC", "Redis"],
-    cpu: 18,
-    mem: 43,
-    requests: 5892,
-    port: 8002,
-  },
-  {
-    id: "graph-engine",
-    name: "graph-engine",
-    status: "experimental",
-    uptime: "2d 0h 48m",
-    version: "v0.1.0-alpha",
-    description: "Directed graph execution experiments. JSON-defined nodes with topological sort execution ordering.",
-    stack: ["Python", "NetworkX", "FastAPI"],
-    cpu: 7,
-    mem: 29,
-    requests: 203,
-    port: 8003,
-  },
-  {
-    id: "biodev",
-    name: "biodev",
-    status: "experimental",
-    uptime: "—",
-    version: "v0.0.1-idea",
-    description: "Developer identity platform that auto-builds profiles from GitHub activity and commit history.",
-    stack: ["Node.js", "GitHub API", "PostgreSQL"],
-    cpu: 0,
-    mem: 0,
-    requests: 0,
-    port: 8004,
-  },
-];
+const REAL_REPOS = ["cli-agent", "json-flow", "School-Management"];
+
+const IDEA_SERVICES = []; // no fake entries
+
+function useServices() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const results = await Promise.all(
+          REAL_REPOS.map(name =>
+            Promise.all([
+              window.fetch(`https://api.github.com/repos/androdotdev/${name}`, {
+                headers: { "Accept": "application/vnd.github+json" }
+              }).then(r => r.json()),
+              window.fetch(`https://api.github.com/repos/androdotdev/${name}/languages`, {
+                headers: { "Accept": "application/vnd.github+json" }
+              }).then(r => r.json()),
+            ])
+          )
+        );
+
+        if (cancelled) return;
+
+        const svcs = results.map(([repo, langs]) => {
+          const daysSincePush = Math.floor((Date.now() - new Date(repo.pushed_at)) / 86400000);
+          const daysSinceCreate = Math.floor((Date.now() - new Date(repo.created_at)) / 86400000);
+          const status = daysSincePush < 30 ? "running" : "experimental";
+          const uptimeDays = daysSinceCreate;
+          const stack = [
+            ...Object.keys(langs || {}).slice(0, 3),
+            ...(repo.topics || []).slice(0, 3),
+          ].filter(Boolean);
+
+          // simulate cpu/mem/requests for console aesthetic
+          const seed = repo.id % 100;
+          const cpu  = status === "running" ? 10 + (seed % 40) : 0;
+          const mem  = status === "running" ? 20 + (seed % 50) : 0;
+          const reqs = status === "running" ? repo.stargazers_count * 100 + repo.forks_count * 50 + (seed * 7) : 0;
+
+          return {
+            id: repo.name,
+            name: repo.name,
+            status,
+            uptime: status === "running" ? `${uptimeDays}d` : "—",
+            version: repo.topics?.find(t => t.startsWith("v")) || `v—`,
+            description: repo.description || "No description provided.",
+            stack: stack.length > 0 ? stack : [repo.language].filter(Boolean),
+            cpu,
+            mem,
+            requests: reqs,
+            port: null,
+            stars: repo.stargazers_count,
+            forks: repo.forks_count,
+            url: repo.html_url,
+            pushed_at: repo.pushed_at,
+          };
+        });
+
+        setServices(svcs);
+      } catch (err) {
+        console.error("useServices error:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  return { services, loading };
+}
+
+// keep SERVICES as empty array — components will use useServices() hook
+const SERVICES = []
 
 const LOGS = [
   { ts: "00:00:01", level: "BOOT", msg: "Rishabh Madhwal · System Console [codename: andro] initializing..." },
@@ -1086,6 +1110,7 @@ function Skel({ w = "100%", h = 16, r = 3 }) {
 
 function OverviewTab() {
   const { user, repos, events, loading, error, raw } = useGitHub("androdotdev");
+  const { services: ghServices, loading: svcLoading } = useServices();
 
   // ── derived metrics ──
   const totalStars   = repos.reduce((a, r) => a + (r.stargazers_count || 0), 0);
@@ -1333,36 +1358,45 @@ function OverviewTab() {
 
       {/* ── REPO TABLE + RECENT EVENTS ── */}
       <div className="row">
-        {/* top repos as services */}
+        {/* service health from real repos */}
         <div className="col-2 panel">
           <div className="panel-header">
-            <span className="panel-title">Recent Repos</span>
-            <span className="panel-meta">{loading ? "..." : `${repos.length} total · sorted by activity`}</span>
+            <span className="panel-title">Service Health</span>
+            <span className="panel-meta">{svcLoading ? "..." : `${ghServices.filter(s=>s.status==="running").length}/${ghServices.length} running`}</span>
           </div>
           <div style={{ padding: "0 14px" }}>
-            {loading
-              ? Array.from({length: 5}, (_, i) => (
+            {svcLoading
+              ? Array.from({length: 3}, (_, i) => (
                   <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 6 }}>
                     <Skel w="60%" h={12} /> <Skel w="40%" h={10} />
                   </div>
                 ))
-              : topRepos.map((r, i) => (
-                  <div key={r.id} style={{
-                    display: "grid", gridTemplateColumns: "1fr 60px 50px 50px 70px",
+              : ghServices.map((s, i) => (
+                  <div key={s.id} style={{
+                    display: "grid", gridTemplateColumns: "1fr 80px 1fr 1fr",
                     alignItems: "center", gap: 10,
                     padding: "9px 0",
-                    borderBottom: i < topRepos.length - 1 ? "1px solid var(--border)" : "none",
+                    borderBottom: i < ghServices.length - 1 ? "1px solid var(--border)" : "none",
                   }}>
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text)" }}>{r.name}</div>
-                      <div style={{ fontSize: 9, color: "var(--text3)", marginTop: 1, display: "flex", alignItems: "center", gap: 5 }}>
-                        {r.language && <><div style={{ width: 7, height: 7, borderRadius: "50%", background: langColor(r.language), display: "inline-block" }} /> {r.language}</>}
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text)" }}>
+                        <span className={`status-dot ${statusDot(s.status)}`} />{s.name}
+                      </div>
+                      <div style={{ fontSize: 9, color: "var(--text3)", marginTop: 1 }}>{timeAgo(s.pushed_at)}</div>
+                    </div>
+                    <span className={`badge ${badgeClass(s.status)}`}>{s.status}</span>
+                    <div>
+                      <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 3 }}>cpu {s.cpu}%</div>
+                      <div style={{ height: 4, background: "var(--bg3)", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${s.cpu}%`, background: gaugeColor(s.cpu), borderRadius: 2 }} />
                       </div>
                     </div>
-                    <span style={{ fontSize: 9, color: "var(--yellow)" }}>★ {r.stargazers_count}</span>
-                    <span style={{ fontSize: 9, color: "var(--text3)" }}>⑂ {r.forks_count}</span>
-                    <span style={{ fontSize: 9, color: r.open_issues_count > 0 ? "var(--red)" : "var(--text3)" }}>⚑ {r.open_issues_count}</span>
-                    <span style={{ fontSize: 9, color: "var(--text3)", textAlign: "right" }}>{timeAgo(r.pushed_at)}</span>
+                    <div>
+                      <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 3 }}>mem {s.mem}%</div>
+                      <div style={{ height: 4, background: "var(--bg3)", borderRadius: 2, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${s.mem}%`, background: gaugeColor(s.mem), borderRadius: 2 }} />
+                      </div>
+                    </div>
                   </div>
                 ))
             }
@@ -1420,9 +1454,21 @@ function OverviewTab() {
 
 function ServicesTab() {
   const [sel, setSel] = useState(null);
+  const { services, loading } = useServices();
+
+  if (loading) return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {Array.from({length: 3}, (_, i) => (
+        <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: 14 }}>
+          <Skel w="40%" h={13} /><div style={{marginTop:8}}><Skel w="80%" h={10} /></div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="services-grid">
-      {SERVICES.map(s => (
+      {services.map(s => (
         <div
           key={s.id}
           className={`service-card ${sel === s.id ? "selected" : ""}`}
@@ -1434,7 +1480,7 @@ function ServicesTab() {
                 <span className={`status-dot ${statusDot(s.status)}`} />
                 {s.name}
               </div>
-              <div className="service-version">{s.version} · :{s.port}</div>
+              <div className="service-version">{s.version}{s.stars > 0 ? ` · ★${s.stars}` : ""}</div>
             </div>
             <span className={`badge ${badgeClass(s.status)}`}>{s.status}</span>
           </div>
@@ -1566,7 +1612,7 @@ function AboutTab() {
             ["runtime", "React 18"],
             ["theme", "Grafana-inspired dark"],
             ["uptime", "14d 6h 22m"],
-            ["services", `${SERVICES.length} registered`],
+            ["services", `${appServices.length} repos`],
             ["log_entries", `${LOGS.length} entries`],
             ["graph", "lang · tool · infra nodes"],
           ].map(([k, v]) => (
@@ -1586,6 +1632,7 @@ function AboutTab() {
 export default function App() {
   const [tab, setTab] = useState("overview");
   const [streamedLogs, setStreamedLogs] = useState([]);
+  const { services: appServices } = useServices();
 
   const startStream = () => {
     setStreamedLogs([]);
@@ -1649,7 +1696,7 @@ export default function App() {
           ))}
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: 10, color: "var(--text3)", letterSpacing: "0.08em" }}>
-            {SERVICES.filter(s => s.status === "running").length}/{SERVICES.length} services ·{" "}
+            {appServices.filter(s => s.status === "running").length}/{appServices.length} services ·{" "}
             <span style={{ color: "var(--green)" }}>●</span> healthy
           </span>
         </div>
