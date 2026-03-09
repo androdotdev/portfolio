@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./components/Androsystemconsole.jsx";
 import { BlogList, BlogPost } from "./blog/Blog.jsx";
-import NotFound from "./NotFound.jsx";
 
 // global reset — prevents white flash/padding on all routes
 const globalStyle = document.createElement("style");
@@ -29,7 +28,6 @@ createRoot(document.getElementById("root")).render(
         <Route path="/" element={<App />} />
         <Route path="/blog" element={<BlogList />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
