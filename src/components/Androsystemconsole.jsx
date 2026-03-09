@@ -15,23 +15,34 @@ function useServices() {
     const load = async () => {
       try {
         const results = await Promise.all(
-          REAL_REPOS.map(name =>
+          REAL_REPOS.map((name) =>
             Promise.all([
-              window.fetch(`https://api.github.com/repos/androdotdev/${name}`, {
-                headers: { "Accept": "application/vnd.github+json" }
-              }).then(r => r.json()),
-              window.fetch(`https://api.github.com/repos/androdotdev/${name}/languages`, {
-                headers: { "Accept": "application/vnd.github+json" }
-              }).then(r => r.json()),
-            ])
-          )
+              window
+                .fetch(`https://api.github.com/repos/androdotdev/${name}`, {
+                  headers: { Accept: "application/vnd.github+json" },
+                })
+                .then((r) => r.json()),
+              window
+                .fetch(
+                  `https://api.github.com/repos/androdotdev/${name}/languages`,
+                  {
+                    headers: { Accept: "application/vnd.github+json" },
+                  },
+                )
+                .then((r) => r.json()),
+            ]),
+          ),
         );
 
         if (cancelled) return;
 
         const svcs = results.map(([repo, langs]) => {
-          const daysSincePush = Math.floor((Date.now() - new Date(repo.pushed_at)) / 86400000);
-          const daysSinceCreate = Math.floor((Date.now() - new Date(repo.created_at)) / 86400000);
+          const daysSincePush = Math.floor(
+            (Date.now() - new Date(repo.pushed_at)) / 86400000,
+          );
+          const daysSinceCreate = Math.floor(
+            (Date.now() - new Date(repo.created_at)) / 86400000,
+          );
           const status = daysSincePush < 30 ? "running" : "experimental";
           const uptimeDays = daysSinceCreate;
           const stack = [
@@ -41,16 +52,19 @@ function useServices() {
 
           // simulate cpu/mem/requests for console aesthetic
           const seed = repo.id % 100;
-          const cpu  = status === "running" ? 10 + (seed % 40) : 0;
-          const mem  = status === "running" ? 20 + (seed % 50) : 0;
-          const reqs = status === "running" ? repo.stargazers_count * 100 + repo.forks_count * 50 + (seed * 7) : 0;
+          const cpu = status === "running" ? 10 + (seed % 40) : 0;
+          const mem = status === "running" ? 20 + (seed % 50) : 0;
+          const reqs =
+            status === "running"
+              ? repo.stargazers_count * 100 + repo.forks_count * 50 + seed * 7
+              : 0;
 
           return {
             id: repo.name,
             name: repo.name,
             status,
             uptime: status === "running" ? `${uptimeDays}d` : "—",
-            version: repo.topics?.find(t => t.startsWith("v")) || `v—`,
+            version: repo.topics?.find((t) => t.startsWith("v")) || `v—`,
             description: repo.description || "No description provided.",
             stack: stack.length > 0 ? stack : [repo.language].filter(Boolean),
             cpu,
@@ -72,34 +86,95 @@ function useServices() {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { services, loading };
 }
 
 // keep SERVICES as empty array — components will use useServices() hook
-const SERVICES = []
+const SERVICES = [];
 
 const LOGS = [
-  { ts: "00:00:01", level: "BOOT", msg: "Rishabh Madhwal · System Console [codename: andro] initializing..." },
-  { ts: "00:00:02", level: "BOOT", msg: "Loading service registry from services.json" },
-  { ts: "00:00:03", level: "INFO", msg: "cli-agent registered on :8001 — status: running" },
-  { ts: "00:00:04", level: "INFO", msg: "jsonflow registered on :8002 — status: running" },
-  { ts: "00:00:05", level: "INFO", msg: "graph-engine registered on :8003 — status: experimental" },
-  { ts: "00:00:06", level: "WARN", msg: "biodev environment config incomplete — service held from startup" },
-  { ts: "00:00:07", level: "INFO", msg: "GitHub API probe scheduled (interval: 60s)" },
-  { ts: "00:00:08", level: "INFO", msg: "System graph topology computed — 4 nodes, 5 edges" },
-  { ts: "00:00:09", level: "INFO", msg: "Logger stream opened — writing to /var/log/andro/console.log" },
+  {
+    ts: "00:00:01",
+    level: "BOOT",
+    msg: "Rishabh Madhwal · System Console [codename: andro] initializing...",
+  },
+  {
+    ts: "00:00:02",
+    level: "BOOT",
+    msg: "Loading service registry from services.json",
+  },
+  {
+    ts: "00:00:03",
+    level: "INFO",
+    msg: "cli-agent registered on :8001 — status: running",
+  },
+  {
+    ts: "00:00:04",
+    level: "INFO",
+    msg: "jsonflow registered on :8002 — status: running",
+  },
+  {
+    ts: "00:00:05",
+    level: "INFO",
+    msg: "graph-engine registered on :8003 — status: experimental",
+  },
+  {
+    ts: "00:00:06",
+    level: "WARN",
+    msg: "biodev environment config incomplete — service held from startup",
+  },
+  {
+    ts: "00:00:07",
+    level: "INFO",
+    msg: "GitHub API probe scheduled (interval: 60s)",
+  },
+  {
+    ts: "00:00:08",
+    level: "INFO",
+    msg: "System graph topology computed — 4 nodes, 5 edges",
+  },
+  {
+    ts: "00:00:09",
+    level: "INFO",
+    msg: "Logger stream opened — writing to /var/log/andro/console.log",
+  },
   { ts: "00:00:10", level: "INFO", msg: "Console ready. All panels mounted." },
-  { ts: "00:01:12", level: "DEBUG", msg: "cli-agent: tool_call dispatched → bash_exec" },
-  { ts: "00:01:13", level: "DEBUG", msg: "jsonflow: pipeline tick — 12 transforms applied" },
-  { ts: "00:02:44", level: "WARN", msg: "graph-engine: node 'transform_7' retry #2 (timeout)" },
-  { ts: "00:03:01", level: "INFO", msg: "GitHub API: fetched 8 repos, 3 languages detected" },
-  { ts: "00:04:55", level: "WARN", msg: "biodev: concept stage only — no runtime process scheduled" },
-  { ts: "00:05:10", level: "INFO", msg: "cli-agent: agent loop completed — 4 tool calls, 1 plan revision" },
+  {
+    ts: "00:01:12",
+    level: "DEBUG",
+    msg: "cli-agent: tool_call dispatched → bash_exec",
+  },
+  {
+    ts: "00:01:13",
+    level: "DEBUG",
+    msg: "jsonflow: pipeline tick — 12 transforms applied",
+  },
+  {
+    ts: "00:02:44",
+    level: "WARN",
+    msg: "graph-engine: node 'transform_7' retry #2 (timeout)",
+  },
+  {
+    ts: "00:03:01",
+    level: "INFO",
+    msg: "GitHub API: fetched 8 repos, 3 languages detected",
+  },
+  {
+    ts: "00:04:55",
+    level: "WARN",
+    msg: "biodev: concept stage only — no runtime process scheduled",
+  },
+  {
+    ts: "00:05:10",
+    level: "INFO",
+    msg: "cli-agent: agent loop completed — 4 tool calls, 1 plan revision",
+  },
 ];
-
 
 const METRICS_HISTORY = Array.from({ length: 24 }, (_, i) => ({
   t: `${String(i).padStart(2, "0")}:00`,
@@ -575,7 +650,8 @@ function gaugeColor(v) {
 // ─── SPARKLINE ───────────────────────────────────────────────────────────────
 
 function Sparkline({ data, color = "#4da6ff", height = 60 }) {
-  const W = 400, H = height;
+  const W = 400,
+    H = height;
   const max = Math.max(...data, 1);
   const pts = data.map((v, i) => {
     const x = (i / (data.length - 1)) * W;
@@ -583,9 +659,13 @@ function Sparkline({ data, color = "#4da6ff", height = 60 }) {
     return `${x},${y}`;
   });
   const polyline = pts.join(" ");
-  const areaPath = `M${pts[0]} ${pts.map((p, i) => (i === 0 ? "" : `L${p}`)).join(" ")} L${(data.length - 1) / (data.length - 1) * W},${H} L0,${H} Z`;
+  const areaPath = `M${pts[0]} ${pts.map((p, i) => (i === 0 ? "" : `L${p}`)).join(" ")} L${((data.length - 1) / (data.length - 1)) * W},${H} L0,${H} Z`;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="sparkline-svg">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="sparkline-svg"
+    >
       <path d={areaPath} fill={color} className="spark-area" />
       <polyline points={polyline} stroke={color} className="spark-line" />
     </svg>
@@ -600,9 +680,15 @@ function GaugeBar({ label, value, max = 100, unit = "%" }) {
     <div className="gauge-row">
       <div className="gauge-label">{label}</div>
       <div className="gauge-track">
-        <div className="gauge-fill" style={{ width: `${pct}%`, background: gaugeColor(pct) }} />
+        <div
+          className="gauge-fill"
+          style={{ width: `${pct}%`, background: gaugeColor(pct) }}
+        />
       </div>
-      <div className="gauge-val">{value}{unit}</div>
+      <div className="gauge-val">
+        {value}
+        {unit}
+      </div>
     </div>
   );
 }
@@ -610,47 +696,70 @@ function GaugeBar({ label, value, max = 100, unit = "%" }) {
 // ─── TECH STACK GRAPH ────────────────────────────────────────────────────────
 
 const CAT_COLOR = {
-  lang:    { stroke: "#4da6ff", fill: "#0d1a2e", text: "#4da6ff" },
+  lang: { stroke: "#4da6ff", fill: "#0d1a2e", text: "#4da6ff" },
   runtime: { stroke: "#39d98a", fill: "#0d2018", text: "#39d98a" },
-  infra:   { stroke: "#f5c842", fill: "#1c1a00", text: "#f5c842" },
-  api:     { stroke: "#9d7eff", fill: "#1a1030", text: "#9d7eff" },
-  lib:     { stroke: "#3de8d4", fill: "#0a2228", text: "#3de8d4" },
-  other:   { stroke: "#ff8c42", fill: "#1c1208", text: "#ff8c42" },
+  infra: { stroke: "#f5c842", fill: "#1c1a00", text: "#f5c842" },
+  api: { stroke: "#9d7eff", fill: "#1a1030", text: "#9d7eff" },
+  lib: { stroke: "#3de8d4", fill: "#0a2228", text: "#3de8d4" },
+  other: { stroke: "#ff8c42", fill: "#1c1208", text: "#ff8c42" },
 };
 
 // Map known tools/frameworks to categories
 const TOOL_CATEGORY = {
   // langs — detected automatically from GitHub
   // infra
-  redis: "infra", postgresql: "infra", postgres: "infra", mysql: "infra",
-  mongodb: "infra", sqlite: "infra", docker: "infra", kubernetes: "infra",
-  nginx: "infra", kafka: "infra", rabbitmq: "infra",
+  redis: "infra",
+  postgresql: "infra",
+  postgres: "infra",
+  mysql: "infra",
+  mongodb: "infra",
+  sqlite: "infra",
+  docker: "infra",
+  kubernetes: "infra",
+  nginx: "infra",
+  kafka: "infra",
+  rabbitmq: "infra",
   // runtime
-  tokio: "runtime", fastapi: "runtime", actix: "runtime", axum: "runtime",
-  express: "runtime", gin: "runtime", fiber: "runtime", flask: "runtime",
-  django: "runtime", spring: "runtime",
+  tokio: "runtime",
+  fastapi: "runtime",
+  actix: "runtime",
+  axum: "runtime",
+  express: "runtime",
+  gin: "runtime",
+  fiber: "runtime",
+  flask: "runtime",
+  django: "runtime",
+  spring: "runtime",
   // api
-  "openai-api": "api", "github-api": "api", graphql: "api", grpc: "api",
-  rest: "api", websocket: "api",
+  "openai-api": "api",
+  "github-api": "api",
+  graphql: "api",
+  grpc: "api",
+  rest: "api",
+  websocket: "api",
   // lib
-  networkx: "lib", clap: "lib", serde: "lib", sqlx: "lib",
-  "dag-engine": "lib", dagengine: "lib",
+  networkx: "lib",
+  clap: "lib",
+  serde: "lib",
+  sqlx: "lib",
+  "dag-engine": "lib",
+  dagengine: "lib",
 };
 
 function buildGraphFromRepos(repos, allLanguages) {
   // allLanguages: { repoName: { Lang: bytes } }
-  const langBytes = {};   // lang → total bytes
-  const langRepos = {};   // lang → [repoName]
-  const topicRepos = {};  // topic → [repoName]
+  const langBytes = {}; // lang → total bytes
+  const langRepos = {}; // lang → [repoName]
+  const topicRepos = {}; // topic → [repoName]
 
-  repos.forEach(repo => {
+  repos.forEach((repo) => {
     const langs = allLanguages[repo.name] || {};
     Object.entries(langs).forEach(([lang, bytes]) => {
       langBytes[lang] = (langBytes[lang] || 0) + bytes;
       if (!langRepos[lang]) langRepos[lang] = [];
       langRepos[lang].push(repo.name);
     });
-    (repo.topics || []).forEach(topic => {
+    (repo.topics || []).forEach((topic) => {
       if (!topicRepos[topic]) topicRepos[topic] = [];
       topicRepos[topic].push(repo.name);
     });
@@ -676,7 +785,7 @@ function buildGraphFromRepos(repos, allLanguages) {
   // Topic nodes (tools/infra from repo topics)
   Object.entries(topicRepos).forEach(([topic, repos]) => {
     // skip if it's already a language node
-    if (nodes.find(n => n.id === topic.toLowerCase())) return;
+    if (nodes.find((n) => n.id === topic.toLowerCase())) return;
     const cat = TOOL_CATEGORY[topic.toLowerCase()] || "other";
     nodes.push({
       id: topic,
@@ -690,14 +799,20 @@ function buildGraphFromRepos(repos, allLanguages) {
   // Build edges: connect nodes that appear in the same repo
   const edges = [];
   const seen = new Set();
-  repos.forEach(repo => {
-    const langs = Object.keys(allLanguages[repo.name] || {}).map(l => l.toLowerCase());
-    const topics = (repo.topics || []);
+  repos.forEach((repo) => {
+    const langs = Object.keys(allLanguages[repo.name] || {}).map((l) =>
+      l.toLowerCase(),
+    );
+    const topics = repo.topics || [];
     const allIds = [...langs, ...topics];
     for (let i = 0; i < allIds.length; i++) {
       for (let j = i + 1; j < allIds.length; j++) {
         const key = [allIds[i], allIds[j]].sort().join("--");
-        if (!seen.has(key) && nodes.find(n => n.id === allIds[i]) && nodes.find(n => n.id === allIds[j])) {
+        if (
+          !seen.has(key) &&
+          nodes.find((n) => n.id === allIds[i]) &&
+          nodes.find((n) => n.id === allIds[j])
+        ) {
           seen.add(key);
           edges.push({ from: allIds[i], to: allIds[j] });
         }
@@ -706,9 +821,10 @@ function buildGraphFromRepos(repos, allLanguages) {
   });
 
   // Simple force-like layout: place nodes in a rough circle, langs in center ring
-  const langNodes = nodes.filter(n => n.category === "lang");
-  const otherNodes = nodes.filter(n => n.category !== "lang");
-  const CX = 440, CY = 200;
+  const langNodes = nodes.filter((n) => n.category === "lang");
+  const otherNodes = nodes.filter((n) => n.category !== "lang");
+  const CX = 440,
+    CY = 200;
 
   langNodes.forEach((n, i) => {
     const angle = (i / langNodes.length) * Math.PI * 2 - Math.PI / 2;
@@ -737,11 +853,17 @@ function useStackGraph(repos) {
         // fetch languages for each repo in parallel (cap at 20 repos)
         const slice = repos.slice(0, 20);
         const results = await Promise.all(
-          slice.map(r =>
-            window.fetch(`https://api.github.com/repos/androdotdev/${r.name}/languages`, {
-              headers: { "Accept": "application/vnd.github+json" }
-            }).then(res => res.json()).then(data => ({ name: r.name, langs: data }))
-          )
+          slice.map((r) =>
+            window
+              .fetch(
+                `https://api.github.com/repos/androdotdev/${r.name}/languages`,
+                {
+                  headers: { Accept: "application/vnd.github+json" },
+                },
+              )
+              .then((res) => res.json())
+              .then((data) => ({ name: r.name, langs: data })),
+          ),
         );
         if (cancelled) return;
         const allLanguages = {};
@@ -752,12 +874,14 @@ function useStackGraph(repos) {
         setGraph({ nodes, edges, loading: false });
       } catch (err) {
         console.error("stack graph error:", err);
-        if (!cancelled) setGraph(g => ({ ...g, loading: false }));
+        if (!cancelled) setGraph((g) => ({ ...g, loading: false }));
       }
     };
 
     loadLangs();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [repos.length]);
 
   return graph;
@@ -768,7 +892,7 @@ function TechStackGraph({ nodes, edges }) {
   const [tooltip, setTooltip] = useState({ x: 0, y: 0 });
   const svgRef = useRef(null);
 
-  const hoveredNode = nodes.find(n => n.id === hovered);
+  const hoveredNode = nodes.find((n) => n.id === hovered);
 
   const handleMouseMove = (e) => {
     if (!svgRef.current) return;
@@ -788,25 +912,40 @@ function TechStackGraph({ nodes, edges }) {
         <defs>
           <filter id="node-glow">
             <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-            <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
           <filter id="soft-glow">
             <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-            <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         </defs>
 
         {/* edges */}
         {edges.map((e, i) => {
-          const f = nodes.find(n => n.id === e.from);
-          const t = nodes.find(n => n.id === e.to);
+          const f = nodes.find((n) => n.id === e.from);
+          const t = nodes.find((n) => n.id === e.to);
           if (!f || !t) return null;
-          const highlighted = hovered && (e.from === hovered || e.to === hovered);
+          const highlighted =
+            hovered && (e.from === hovered || e.to === hovered);
           const dimmed = hovered && !highlighted;
           return (
-            <line key={i}
-              x1={f.x} y1={f.y} x2={t.x} y2={t.y}
-              stroke={highlighted ? CAT_COLOR[f.category]?.stroke || "#4da6ff" : "#1f2d45"}
+            <line
+              key={i}
+              x1={f.x}
+              y1={f.y}
+              x2={t.x}
+              y2={t.y}
+              stroke={
+                highlighted
+                  ? CAT_COLOR[f.category]?.stroke || "#4da6ff"
+                  : "#1f2d45"
+              }
               strokeWidth={highlighted ? 1.5 : 1}
               opacity={dimmed ? 0.06 : highlighted ? 0.6 : 0.2}
             />
@@ -814,31 +953,57 @@ function TechStackGraph({ nodes, edges }) {
         })}
 
         {/* nodes */}
-        {nodes.map(n => {
+        {nodes.map((n) => {
           const c = CAT_COLOR[n.category] || CAT_COLOR.other;
           const isHovered = hovered === n.id;
-          const isConnected = hovered && edges.some(e =>
-            (e.from === hovered && e.to === n.id) || (e.to === hovered && e.from === n.id)
-          );
+          const isConnected =
+            hovered &&
+            edges.some(
+              (e) =>
+                (e.from === hovered && e.to === n.id) ||
+                (e.to === hovered && e.from === n.id),
+            );
           const isDimmed = hovered && !isHovered && !isConnected;
           return (
-            <g key={n.id} onMouseEnter={() => setHovered(n.id)} style={{ cursor: "default" }} opacity={isDimmed ? 0.12 : 1}>
+            <g
+              key={n.id}
+              onMouseEnter={() => setHovered(n.id)}
+              style={{ cursor: "default" }}
+              opacity={isDimmed ? 0.12 : 1}
+            >
               {isHovered && (
-                <circle cx={n.x} cy={n.y} r={n.r + 8} fill="none"
-                  stroke={c.stroke} strokeWidth={1} opacity={0.3} filter="url(#soft-glow)" />
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r + 8}
+                  fill="none"
+                  stroke={c.stroke}
+                  strokeWidth={1}
+                  opacity={0.3}
+                  filter="url(#soft-glow)"
+                />
               )}
-              <circle cx={n.x} cy={n.y} r={n.r}
-                fill={c.fill} stroke={c.stroke}
+              <circle
+                cx={n.x}
+                cy={n.y}
+                r={n.r}
+                fill={c.fill}
+                stroke={c.stroke}
                 strokeWidth={isHovered ? 2 : isConnected ? 1.5 : 1}
                 filter={isHovered ? "url(#node-glow)" : "none"}
               />
-              <text x={n.x} y={n.y + 1}
-                textAnchor="middle" dominantBaseline="middle"
+              <text
+                x={n.x}
+                y={n.y + 1}
+                textAnchor="middle"
+                dominantBaseline="middle"
                 fontSize={n.r > 24 ? 10 : n.r > 18 ? 9 : 8}
                 fontWeight={isHovered ? 700 : 500}
                 fill={isDimmed ? "#2a3a50" : c.text}
                 fontFamily="'JetBrains Mono', monospace"
-              >{n.label}</text>
+              >
+                {n.label}
+              </text>
             </g>
           );
         })}
@@ -846,46 +1011,144 @@ function TechStackGraph({ nodes, edges }) {
 
       {/* tooltip */}
       {hoveredNode && (
-        <div style={{
-          position: "absolute",
-          left: Math.min(tooltip.x + 14, 580),
-          top: Math.max(tooltip.y - 70, 8),
-          background: "var(--bg1)",
-          border: `1px solid ${(CAT_COLOR[hoveredNode.category] || CAT_COLOR.other).stroke}`,
-          borderRadius: 4, padding: "10px 14px",
-          pointerEvents: "none", zIndex: 10, minWidth: 190,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: (CAT_COLOR[hoveredNode.category] || CAT_COLOR.other).stroke }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", fontFamily: "var(--mono)" }}>{hoveredNode.label}</span>
-            <span style={{ fontSize: 9, color: (CAT_COLOR[hoveredNode.category] || CAT_COLOR.other).stroke, marginLeft: "auto", letterSpacing: "0.08em" }}>{hoveredNode.category}</span>
+        <div
+          style={{
+            position: "absolute",
+            left: Math.min(tooltip.x + 14, 580),
+            top: Math.max(tooltip.y - 70, 8),
+            background: "var(--bg1)",
+            border: `1px solid ${(CAT_COLOR[hoveredNode.category] || CAT_COLOR.other).stroke}`,
+            borderRadius: 4,
+            padding: "10px 14px",
+            pointerEvents: "none",
+            zIndex: 10,
+            minWidth: 190,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 7,
+            }}
+          >
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: (CAT_COLOR[hoveredNode.category] || CAT_COLOR.other)
+                  .stroke,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "var(--text)",
+                fontFamily: "var(--mono)",
+              }}
+            >
+              {hoveredNode.label}
+            </span>
+            <span
+              style={{
+                fontSize: 9,
+                color: (CAT_COLOR[hoveredNode.category] || CAT_COLOR.other)
+                  .stroke,
+                marginLeft: "auto",
+                letterSpacing: "0.08em",
+              }}
+            >
+              {hoveredNode.category}
+            </span>
           </div>
           {hoveredNode.bytes && (
-            <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 6 }}>
+            <div
+              style={{ fontSize: 9, color: "var(--text3)", marginBottom: 6 }}
+            >
               {(hoveredNode.bytes / 1000).toFixed(1)}kb written
             </div>
           )}
-          <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 5, letterSpacing: "0.08em", textTransform: "uppercase" }}>used in</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 8 }}>
-            {hoveredNode.projects.map(p => (
-              <div key={p} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span className="status-dot dot-green" style={{ margin: 0, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, color: "var(--text)", fontFamily: "var(--mono)" }}>{p}</span>
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--text3)",
+              marginBottom: 5,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            used in
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              marginBottom: 8,
+            }}
+          >
+            {hoveredNode.projects.map((p) => (
+              <div
+                key={p}
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <span
+                  className="status-dot dot-green"
+                  style={{ margin: 0, flexShrink: 0 }}
+                />
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "var(--text)",
+                    fontFamily: "var(--mono)",
+                  }}
+                >
+                  {p}
+                </span>
               </div>
             ))}
           </div>
           {(() => {
             const connected = edges
-              .filter(e => e.from === hoveredNode.id || e.to === hoveredNode.id)
-              .map(e => e.from === hoveredNode.id ? e.to : e.from)
-              .map(id => nodes.find(n => n.id === id)?.label)
+              .filter(
+                (e) => e.from === hoveredNode.id || e.to === hoveredNode.id,
+              )
+              .map((e) => (e.from === hoveredNode.id ? e.to : e.from))
+              .map((id) => nodes.find((n) => n.id === id)?.label)
               .filter(Boolean);
             return connected.length > 0 ? (
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 7 }}>
-                <div style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>co-occurs with</div>
+              <div
+                style={{ borderTop: "1px solid var(--border)", paddingTop: 7 }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    color: "var(--text3)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    marginBottom: 4,
+                  }}
+                >
+                  co-occurs with
+                </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                  {connected.slice(0, 6).map(l => (
-                    <span key={l} style={{ fontSize: 9, color: "var(--cyan)", background: "#0a2228", border: "1px solid #1a4048", padding: "1px 6px", borderRadius: 2 }}>{l}</span>
+                  {connected.slice(0, 6).map((l) => (
+                    <span
+                      key={l}
+                      style={{
+                        fontSize: 9,
+                        color: "var(--cyan)",
+                        background: "#0a2228",
+                        border: "1px solid #1a4048",
+                        padding: "1px 6px",
+                        borderRadius: 2,
+                      }}
+                    >
+                      {l}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -912,69 +1175,183 @@ function GraphTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* mobile fallback */}
-      <div className="graph-tab-mobile" style={{
-        display: "none", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", gap: 10, padding: "40px 20px",
-        background: "var(--bg1)", border: "1px solid var(--border)", borderRadius: 4,
-      }}>
+      <div
+        className="graph-tab-mobile"
+        style={{
+          display: "none",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+          padding: "40px 20px",
+          background: "var(--bg1)",
+          border: "1px solid var(--border)",
+          borderRadius: 4,
+        }}
+      >
         <span style={{ fontSize: 20 }}>⬡</span>
-        <span style={{ fontSize: 11, color: "var(--text2)", textAlign: "center" }}>Graph view available on desktop</span>
-        <span style={{ fontSize: 10, color: "var(--text3)", textAlign: "center" }}>Open on a larger screen to explore the tech stack graph</span>
+        <span
+          style={{ fontSize: 11, color: "var(--text2)", textAlign: "center" }}
+        >
+          Graph view available on desktop
+        </span>
+        <span
+          style={{ fontSize: 10, color: "var(--text3)", textAlign: "center" }}
+        >
+          Open on a larger screen to explore the tech stack graph
+        </span>
       </div>
       <div className="graph-tab-content">
-      <div className="panel">
-        <div className="panel-header">
-          <span className="panel-title">Tech Stack · Language & Tool Graph</span>
-          <span className="panel-meta">
-            {loading ? "fetching repo languages..." : `${nodes.length} nodes · ${edges.length} edges · built from github api`}
-          </span>
-        </div>
-        <div style={{ padding: "14px 14px 8px" }}>
-          {loading ? (
-            <div style={{ height: 280, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", gap: 3 }}>
-                {Array.from({length: 5}, (_, i) => (
-                  <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", animation: `pulse 1s ${i * 0.15}s infinite` }} />
-                ))}
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">
+              Tech Stack · Language & Tool Graph
+            </span>
+            <span className="panel-meta">
+              {loading
+                ? "fetching repo languages..."
+                : `${nodes.length} nodes · ${edges.length} edges · built from github api`}
+            </span>
+          </div>
+          <div style={{ padding: "14px 14px 8px" }}>
+            {loading ? (
+              <div
+                style={{
+                  height: 280,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: "flex", gap: 3 }}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "var(--blue)",
+                        animation: `pulse 1s ${i * 0.15}s infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                  fetching languages from {repos.length} repos...
+                </span>
               </div>
-              <span style={{ fontSize: 10, color: "var(--text3)" }}>fetching languages from {repos.length} repos...</span>
+            ) : nodes.length === 0 ? (
+              <div
+                style={{
+                  height: 200,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "var(--text3)" }}>
+                  no language data found — add topics to your repos for richer
+                  graph
+                </span>
+              </div>
+            ) : (
+              <TechStackGraph nodes={nodes} edges={edges} />
+            )}
+          </div>
+          {/* legend */}
+          {!loading && (
+            <div
+              style={{
+                padding: "0 14px 14px",
+                display: "flex",
+                gap: 18,
+                flexWrap: "wrap",
+              }}
+            >
+              {Object.entries(CAT_COLOR).map(([cat, c]) => (
+                <div
+                  key={cat}
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <div
+                    style={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: "50%",
+                      background: c.stroke,
+                      opacity: 0.8,
+                    }}
+                  />
+                  <span style={{ fontSize: 10, color: "var(--text3)" }}>
+                    {cat}
+                  </span>
+                </div>
+              ))}
+              <span
+                style={{
+                  fontSize: 10,
+                  color: "var(--text3)",
+                  marginLeft: "auto",
+                }}
+              >
+                node size = bytes written · hover to inspect
+              </span>
             </div>
-          ) : nodes.length === 0 ? (
-            <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 11, color: "var(--text3)" }}>no language data found — add topics to your repos for richer graph</span>
-            </div>
-          ) : (
-            <TechStackGraph nodes={nodes} edges={edges} />
           )}
         </div>
-        {/* legend */}
-        {!loading && (
-          <div style={{ padding: "0 14px 14px", display: "flex", gap: 18, flexWrap: "wrap" }}>
-            {Object.entries(CAT_COLOR).map(([cat, c]) => (
-              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: c.stroke, opacity: 0.8 }} />
-                <span style={{ fontSize: 10, color: "var(--text3)" }}>{cat}</span>
-              </div>
-            ))}
-            <span style={{ fontSize: 10, color: "var(--text3)", marginLeft: "auto" }}>node size = bytes written · hover to inspect</span>
-          </div>
-        )}
       </div>
-
-      </div>{/* end graph-tab-content */}
+      {/* end graph-tab-content */}
       {/* category summary */}
       {!loading && Object.keys(byCategory).length > 0 && (
         <div className="row">
           {Object.entries(byCategory).map(([cat, catNodes]) => {
             const c = CAT_COLOR[cat] || CAT_COLOR.other;
             return (
-              <div key={cat} style={{ flex: 1, background: "var(--bg1)", border: "1px solid var(--border)", borderRadius: 4, padding: "12px 14px", borderTop: `2px solid ${c.stroke}` }}>
-                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: c.stroke, marginBottom: 8 }}>{cat}</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {catNodes.map(n => (
-                    <div key={n.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 10, color: "var(--text)" }}>{n.label}</span>
-                      <span style={{ fontSize: 9, color: "var(--text3)" }}>{n.projects.length} repo{n.projects.length > 1 ? "s" : ""}</span>
+              <div
+                key={cat}
+                style={{
+                  flex: 1,
+                  background: "var(--bg1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 4,
+                  padding: "12px 14px",
+                  borderTop: `2px solid ${c.stroke}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: c.stroke,
+                    marginBottom: 8,
+                  }}
+                >
+                  {cat}
+                </div>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 4 }}
+                >
+                  {catNodes.map((n) => (
+                    <div
+                      key={n.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span style={{ fontSize: 10, color: "var(--text)" }}>
+                        {n.label}
+                      </span>
+                      <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                        {n.projects.length} repo
+                        {n.projects.length > 1 ? "s" : ""}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1001,7 +1378,15 @@ function LogViewer({ logs }) {
 
   if (logs.length === 0) {
     return (
-      <div className="log-stream" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text3)" }}>
+      <div
+        className="log-stream"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          color: "var(--text3)",
+        }}
+      >
         <span className="status-dot dot-blue" />
         <span>awaiting boot sequence...</span>
       </div>
@@ -1017,7 +1402,16 @@ function LogViewer({ logs }) {
           <span className="log-msg">{l.msg}</span>
         </div>
       ))}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, color: "var(--text3)", fontSize: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          marginTop: 4,
+          color: "var(--text3)",
+          fontSize: 10,
+        }}
+      >
         <span className="status-dot dot-green" />
         <span>stream live — {logs.length} entries</span>
       </div>
@@ -1028,7 +1422,7 @@ function LogViewer({ logs }) {
 // ─── MINI BAR CHART ──────────────────────────────────────────────────────────
 
 function MiniBarChart({ data, keyName, color = "#4da6ff" }) {
-  const max = Math.max(...data.map(d => d[keyName]), 1);
+  const max = Math.max(...data.map((d) => d[keyName]), 1);
   return (
     <div className="chart-row">
       {data.map((d, i) => (
@@ -1051,42 +1445,66 @@ function Clock() {
     const id = setInterval(() => setT(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  return <span className="topbar-clock">{t.toISOString().replace("T", " ").slice(0, 19)} UTC</span>;
+  return (
+    <span className="topbar-clock">
+      {t.toISOString().replace("T", " ").slice(0, 19)} UTC
+    </span>
+  );
 }
 
 // ─── GITHUB HOOK ─────────────────────────────────────────────────────────────
 
 function useGitHub(username) {
-  const [data, setData] = useState({ user: null, repos: [], events: [], loading: true, error: null, raw: null });
+  const [data, setData] = useState({
+    user: null,
+    repos: [],
+    events: [],
+    loading: true,
+    error: null,
+    raw: null,
+  });
 
   useEffect(() => {
     let cancelled = false;
     const loadAll = async () => {
       try {
-        const gh = (path) => window.fetch(`https://api.github.com${path}`, {
-          headers: { "Accept": "application/vnd.github+json" }
-        });
+        const gh = (path) =>
+          window.fetch(`https://api.github.com${path}`, {
+            headers: { Accept: "application/vnd.github+json" },
+          });
         const [uRes, rRes, eRes] = await Promise.all([
           gh(`/users/${username}`),
           gh(`/users/${username}/repos?per_page=100&sort=pushed`),
           gh(`/users/${username}/events?per_page=100`),
         ]);
-        const raw = { uStatus: uRes.status, rStatus: rRes.status, eStatus: eRes.status };
-        const [user, repos, events] = await Promise.all([uRes.json(), rRes.json(), eRes.json()]);
-        if (!cancelled) setData({
-          user: user?.login ? user : null,
-          repos: Array.isArray(repos) ? repos : [],
-          events: Array.isArray(events) ? events : [],
-          loading: false,
-          error: user?.message || null,
-          raw,
-        });
+        const raw = {
+          uStatus: uRes.status,
+          rStatus: rRes.status,
+          eStatus: eRes.status,
+        };
+        const [user, repos, events] = await Promise.all([
+          uRes.json(),
+          rRes.json(),
+          eRes.json(),
+        ]);
+        if (!cancelled)
+          setData({
+            user: user?.login ? user : null,
+            repos: Array.isArray(repos) ? repos : [],
+            events: Array.isArray(events) ? events : [],
+            loading: false,
+            error: user?.message || null,
+            raw,
+          });
       } catch (err) {
-        if (!cancelled) setData(d => ({ ...d, loading: false, error: err.message }));
+        if (!cancelled)
+          setData((d) => ({ ...d, loading: false, error: err.message }));
       }
     };
     loadAll();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [username]);
 
   return data;
@@ -1096,13 +1514,18 @@ function useGitHub(username) {
 
 function Skel({ w = "100%", h = 16, r = 3 }) {
   return (
-    <div style={{
-      width: w, height: h, borderRadius: r,
-      background: "linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%)",
-      backgroundSize: "200% 100%",
-      animation: "shimmer 1.4s infinite",
-      flexShrink: 0,
-    }} />
+    <div
+      style={{
+        width: w,
+        height: h,
+        borderRadius: r,
+        background:
+          "linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.4s infinite",
+        flexShrink: 0,
+      }}
+    />
   );
 }
 
@@ -1113,164 +1536,452 @@ function OverviewTab() {
   const { services: ghServices, loading: svcLoading } = useServices();
 
   // ── derived metrics ──
-  const totalStars   = repos.reduce((a, r) => a + (r.stargazers_count || 0), 0);
-  const totalForks   = repos.reduce((a, r) => a + (r.forks_count || 0), 0);
-  const topLangs     = (() => {
+  const totalStars = repos.reduce((a, r) => a + (r.stargazers_count || 0), 0);
+  const totalForks = repos.reduce((a, r) => a + (r.forks_count || 0), 0);
+  const topLangs = (() => {
     const freq = {};
-    repos.forEach(r => { if (r.language) freq[r.language] = (freq[r.language] || 0) + 1; });
-    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    repos.forEach((r) => {
+      if (r.language) freq[r.language] = (freq[r.language] || 0) + 1;
+    });
+    return Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
   })();
-  const accountAgeDays = user ? Math.floor((Date.now() - new Date(user.created_at)) / 86400000) : 0;
+  const accountAgeDays = user
+    ? Math.floor((Date.now() - new Date(user.created_at)) / 86400000)
+    : 0;
 
   // ── activity sparkline: push events per day, last 30 days ──
   const activityData = (() => {
     const days = Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (29 - i));
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
       return { date: d.toISOString().slice(0, 10), count: 0 };
     });
-    events.filter(e => e.type === "PushEvent").forEach(e => {
-      const day = e.created_at?.slice(0, 10);
-      const slot = days.find(d => d.date === day);
-      if (slot) slot.count += (e.payload?.commits?.length || 1);
-    });
+    events
+      .filter((e) => e.type === "PushEvent")
+      .forEach((e) => {
+        const day = e.created_at?.slice(0, 10);
+        const slot = days.find((d) => d.date === day);
+        if (slot) slot.count += e.payload?.commits?.length || 1;
+      });
     return days;
   })();
 
-  const activeDays   = activityData.filter(d => d.count > 0).length;
+  const activeDays = activityData.filter((d) => d.count > 0).length;
   const totalCommits = activityData.reduce((a, d) => a + d.count, 0);
-  const peakDay      = Math.max(...activityData.map(d => d.count), 1);
+  const peakDay = Math.max(...activityData.map((d) => d.count), 1);
 
   // ── repo size sparkline: top 10 repos by size ──
   const repoSizeData = [...repos].sort((a, b) => b.size - a.size).slice(0, 20);
-  const maxSize      = Math.max(...repoSizeData.map(r => r.size), 1);
+  const maxSize = Math.max(...repoSizeData.map((r) => r.size), 1);
 
   // ── recent events for activity feed ──
   const recentEvents = events.slice(0, 6);
-  const eventLabel   = e => {
-    if (e.type === "PushEvent") return `pushed ${e.payload?.commits?.length || 1} commit(s) to ${e.repo?.name?.split("/")[1]}`;
-    if (e.type === "CreateEvent") return `created ${e.payload?.ref_type} in ${e.repo?.name?.split("/")[1]}`;
+  const eventLabel = (e) => {
+    if (e.type === "PushEvent")
+      return `pushed ${e.payload?.commits?.length || 1} commit(s) to ${e.repo?.name?.split("/")[1]}`;
+    if (e.type === "CreateEvent")
+      return `created ${e.payload?.ref_type} in ${e.repo?.name?.split("/")[1]}`;
     if (e.type === "WatchEvent") return `starred ${e.repo?.name}`;
     if (e.type === "ForkEvent") return `forked ${e.repo?.name}`;
-    if (e.type === "IssuesEvent") return `${e.payload?.action} issue in ${e.repo?.name?.split("/")[1]}`;
-    if (e.type === "PullRequestEvent") return `${e.payload?.action} PR in ${e.repo?.name?.split("/")[1]}`;
-    return `${e.type?.replace("Event","").toLowerCase()} on ${e.repo?.name?.split("/")[1]}`;
+    if (e.type === "IssuesEvent")
+      return `${e.payload?.action} issue in ${e.repo?.name?.split("/")[1]}`;
+    if (e.type === "PullRequestEvent")
+      return `${e.payload?.action} PR in ${e.repo?.name?.split("/")[1]}`;
+    return `${e.type?.replace("Event", "").toLowerCase()} on ${e.repo?.name?.split("/")[1]}`;
   };
-  const timeAgo = ts => {
+  const timeAgo = (ts) => {
     const s = Math.floor((Date.now() - new Date(ts)) / 1000);
     if (s < 60) return `${s}s ago`;
-    if (s < 3600) return `${Math.floor(s/60)}m ago`;
-    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
-    return `${Math.floor(s/86400)}d ago`;
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
   };
 
   // ── top repos for service table ──
-  const topRepos = [...repos].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at)).slice(0, 5);
+  const topRepos = [...repos]
+    .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at))
+    .slice(0, 5);
 
-  const langColor = l => ({ Go:"#00acd7", Rust:"#ce412b", Python:"#3572a5", JavaScript:"#f1e05a", TypeScript:"#2b7489", "C++":"#f34b7d" }[l] || "var(--text3)");
+  const langColor = (l) =>
+    ({
+      Go: "#00acd7",
+      Rust: "#ce412b",
+      Python: "#3572a5",
+      JavaScript: "#f1e05a",
+      TypeScript: "#2b7489",
+      "C++": "#f34b7d",
+    })[l] || "var(--text3)";
 
   return (
     <>
       {/* ── HERO ROW ── */}
       <div className="row">
         {/* identity card */}
-        <div className="hero-identity" style={{
-          flex: "0 0 300px",
-          minWidth: 0, background: "var(--bg1)",
-          border: "1px solid var(--border)", borderRadius: 4,
-          padding: "18px 20px", display: "flex", flexDirection: "column", gap: 10,
-          position: "relative", overflow: "hidden",
-        }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--blue), var(--cyan), transparent)" }} />
+        <div
+          className="hero-identity"
+          style={{
+            flex: "0 0 300px",
+            minWidth: 0,
+            background: "var(--bg1)",
+            border: "1px solid var(--border)",
+            borderRadius: 4,
+            padding: "18px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              background:
+                "linear-gradient(90deg, var(--blue), var(--cyan), transparent)",
+            }}
+          />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {loading
-              ? <Skel w={40} h={40} r="50%" />
-              : <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--blue2)", border: "2px solid var(--blue)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "var(--blue)", fontWeight: 700 }}>RM</div>
-            }
+            {loading ? (
+              <Skel w={40} h={40} r="50%" />
+            ) : (
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "var(--blue2)",
+                  border: "2px solid var(--blue)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 14,
+                  color: "var(--blue)",
+                  fontWeight: 700,
+                }}
+              >
+                RM
+              </div>
+            )}
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Rishabh Madhwal</div>
-              <div style={{ fontSize: 10, color: "var(--cyan)", letterSpacing: "0.1em", marginTop: 2 }}>codename: andro</div>
+              <div
+                style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}
+              >
+                Rishabh Madhwal
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "var(--cyan)",
+                  letterSpacing: "0.1em",
+                  marginTop: 2,
+                }}
+              >
+                codename: andro
+              </div>
             </div>
           </div>
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div
+            style={{
+              borderTop: "1px solid var(--border)",
+              paddingTop: 10,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
             {[
-              ["role",    "Backend Engineer"],
-              ["focus",   "Systems · Architecture"],
-              ["target",  "2026 roles"],
-              ["repos",   loading ? null : `${user?.public_repos ?? "—"} public`],
+              ["role", "Backend Engineer"],
+              ["focus", "Systems · Architecture"],
+              ["target", "2026 roles"],
+              ["repos", loading ? null : `${user?.public_repos ?? "—"} public`],
               ["followers", loading ? null : `${user?.followers ?? "—"}`],
-              ["member",  loading ? null : `${accountAgeDays}d`],
+              ["member", loading ? null : `${accountAgeDays}d`],
             ].map(([k, v]) => (
-              <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                key={k}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <span style={{ fontSize: 10, color: "var(--text3)" }}>{k}</span>
-                {v === null ? <Skel w={60} h={11} /> : <span style={{ fontSize: 10, color: "var(--text)" }}>{v}</span>}
+                {v === null ? (
+                  <Skel w={60} h={11} />
+                ) : (
+                  <span style={{ fontSize: 10, color: "var(--text)" }}>
+                    {v}
+                  </span>
+                )}
               </div>
             ))}
           </div>
-          <a href="https://github.com/androdotdev" style={{ fontSize: 10, color: "var(--blue)", textDecoration: "none", marginTop: 2 }}>
+          <a
+            href="https://github.com/androdotdev"
+            style={{
+              fontSize: 10,
+              color: "var(--blue)",
+              textDecoration: "none",
+              marginTop: 2,
+            }}
+          >
             ↗ github.com/androdotdev
           </a>
         </div>
 
         {/* stat cards */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+        <div
+          style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 10,
+            }}
+          >
             {[
-              { label: "Public Repos",  val: user?.public_repos,   color: "var(--green)",  sub: "on github" },
-              { label: "Total Stars",   val: totalStars,            color: "var(--yellow)", sub: `${totalForks} forks` },
-              { label: "Commits · 30d", val: totalCommits,          color: "var(--blue)",   sub: `${activeDays}/30 active days` },
-              { label: "Followers",     val: user?.followers,       color: "var(--purple)", sub: `following ${user?.following ?? "—"}` },
+              {
+                label: "Public Repos",
+                val: user?.public_repos,
+                color: "var(--green)",
+                sub: "on github",
+              },
+              {
+                label: "Total Stars",
+                val: totalStars,
+                color: "var(--yellow)",
+                sub: `${totalForks} forks`,
+              },
+              {
+                label: "Commits · 30d",
+                val: totalCommits,
+                color: "var(--blue)",
+                sub: `${activeDays}/30 active days`,
+              },
+              {
+                label: "Followers",
+                val: user?.followers,
+                color: "var(--purple)",
+                sub: `following ${user?.following ?? "—"}`,
+              },
             ].map((s, i) => (
-              <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: "12px 14px", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: s.color, opacity: 0.4 }} />
-                <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text3)", marginBottom: 6 }}>{s.label}</div>
-                {loading
-                  ? <Skel w={50} h={24} r={3} />
-                  : <div style={{ fontSize: 22, fontWeight: 700, color: s.color, lineHeight: 1, letterSpacing: "-0.02em" }}>{s.val ?? "—"}</div>
-                }
-                <div style={{ fontSize: 9, color: "var(--text3)", marginTop: 5 }}>{s.sub}</div>
+              <div
+                key={i}
+                style={{
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 3,
+                  padding: "12px 14px",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 2,
+                    background: s.color,
+                    opacity: 0.4,
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "var(--text3)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {s.label}
+                </div>
+                {loading ? (
+                  <Skel w={50} h={24} r={3} />
+                ) : (
+                  <div
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 700,
+                      color: s.color,
+                      lineHeight: 1,
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {s.val ?? "—"}
+                  </div>
+                )}
+                <div
+                  style={{ fontSize: 9, color: "var(--text3)", marginTop: 5 }}
+                >
+                  {s.sub}
+                </div>
               </div>
             ))}
           </div>
 
           {/* system health bar — active days */}
-          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: "10px 14px", display: "flex", alignItems: "center", gap: 14 }}>
-            <span style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", flexShrink: 0 }}>activity · last 30d</span>
-            <div style={{ flex: 1, display: "flex", gap: 3, alignItems: "flex-end", height: 24 }}>
+          <div
+            style={{
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 3,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                color: "var(--text3)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                flexShrink: 0,
+              }}
+            >
+              activity · last 30d
+            </span>
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                gap: 3,
+                alignItems: "flex-end",
+                height: 24,
+              }}
+            >
               {loading
-                ? Array.from({length: 30}, (_, i) => <Skel key={i} w="100%" h={8} r={2} />)
-                : activityData.map((d, i) => (
-                    <div key={i} title={`${d.date}: ${d.count} commits`} style={{
-                      flex: 1, borderRadius: 2,
-                      height: d.count === 0 ? 4 : `${Math.max(20, (d.count / peakDay) * 100)}%`,
-                      background: d.count === 0 ? "var(--bg3)" : "var(--green)",
-                      opacity: d.count === 0 ? 0.3 : 0.6 + (d.count / peakDay) * 0.4,
-                      transition: "height 0.3s ease",
-                      minHeight: 4,
-                    }} />
+                ? Array.from({ length: 30 }, (_, i) => (
+                    <Skel key={i} w="100%" h={8} r={2} />
                   ))
-              }
+                : activityData.map((d, i) => (
+                    <div
+                      key={i}
+                      title={`${d.date}: ${d.count} commits`}
+                      style={{
+                        flex: 1,
+                        borderRadius: 2,
+                        height:
+                          d.count === 0
+                            ? 4
+                            : `${Math.max(20, (d.count / peakDay) * 100)}%`,
+                        background:
+                          d.count === 0 ? "var(--bg3)" : "var(--green)",
+                        opacity:
+                          d.count === 0 ? 0.3 : 0.6 + (d.count / peakDay) * 0.4,
+                        transition: "height 0.3s ease",
+                        minHeight: 4,
+                      }}
+                    />
+                  ))}
             </div>
-            {loading
-              ? <Skel w={60} h={11} />
-              : <span style={{ fontSize: 10, color: "var(--green)", fontWeight: 600, flexShrink: 0 }}>{activeDays}/30 days</span>
-            }
+            {loading ? (
+              <Skel w={60} h={11} />
+            ) : (
+              <span
+                style={{
+                  fontSize: 10,
+                  color: "var(--green)",
+                  fontWeight: 600,
+                  flexShrink: 0,
+                }}
+              >
+                {activeDays}/30 days
+              </span>
+            )}
           </div>
 
           {/* top languages */}
-          <div style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>top languages</div>
-            {loading
-              ? <div style={{ display: "flex", gap: 8, alignItems: "center" }}>{Array.from({length:4}, (_,i) => <Skel key={i} w={60} h={14} />)}</div>
-              : <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  {topLangs.map(([lang, count]) => (
-                    <div key={lang} style={{ display: "flex", alignItems: "center", gap: 5, lineHeight: 1 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: langColor(lang), flexShrink: 0 }} />
-                      <span style={{ fontSize: 10, color: "var(--text)", lineHeight: 1 }}>{lang}</span>
-                      <span style={{ fontSize: 9, color: "var(--text3)", lineHeight: 1 }}>{count}</span>
-                    </div>
-                  ))}
-                </div>
-            }
+          <div
+            style={{
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 3,
+              padding: "10px 14px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 9,
+                color: "var(--text3)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: 8,
+              }}
+            >
+              top languages
+            </div>
+            {loading ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {Array.from({ length: 4 }, (_, i) => (
+                  <Skel key={i} w={60} h={14} />
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {topLangs.map(([lang, count]) => (
+                  <div
+                    key={lang}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      lineHeight: 1,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: langColor(lang),
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 10,
+                        color: "var(--text)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {lang}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        color: "var(--text3)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1281,19 +1992,64 @@ function OverviewTab() {
         <div className="col-3 panel">
           <div className="panel-header">
             <span className="panel-title">Commit Activity · 30d</span>
-            <span className="panel-meta">{loading ? "..." : `${totalCommits} commits · peak ${peakDay}/day`}</span>
+            <span className="panel-meta">
+              {loading
+                ? "..."
+                : `${totalCommits} commits · peak ${peakDay}/day`}
+            </span>
           </div>
           <div style={{ padding: "10px 14px 6px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-              <span style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.08em" }}>TODAY</span>
-              {loading ? <Skel w={40} h={20} /> : <span style={{ fontSize: 20, fontWeight: 700, color: "var(--green)", letterSpacing: "-0.02em" }}>{activityData[activityData.length-1]?.count ?? 0}</span>}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 9,
+                  color: "var(--text3)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                TODAY
+              </span>
+              {loading ? (
+                <Skel w={40} h={20} />
+              ) : (
+                <span
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "var(--green)",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {activityData[activityData.length - 1]?.count ?? 0}
+                </span>
+              )}
             </div>
-            {loading
-              ? <Skel w="100%" h={55} />
-              : <Sparkline data={activityData.map(d => d.count)} color="#39d98a" height={55} />
-            }
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 9, color: "var(--text3)" }}>30d ago</span>
+            {loading ? (
+              <Skel w="100%" h={55} />
+            ) : (
+              <Sparkline
+                data={activityData.map((d) => d.count)}
+                color="#39d98a"
+                height={55}
+              />
+            )}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 4,
+              }}
+            >
+              <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                30d ago
+              </span>
               <span style={{ fontSize: 9, color: "var(--text3)" }}>today</span>
             </div>
           </div>
@@ -1303,28 +2059,76 @@ function OverviewTab() {
         <div className="col-3 panel">
           <div className="panel-header">
             <span className="panel-title">Repo Sizes · top 20</span>
-            <span className="panel-meta">{loading ? "..." : `${repos.length} repos total`}</span>
+            <span className="panel-meta">
+              {loading ? "..." : `${repos.length} repos total`}
+            </span>
           </div>
           <div style={{ padding: "10px 14px 6px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-              <span style={{ fontSize: 9, color: "var(--text3)" }}>LARGEST</span>
-              {loading ? <Skel w={70} h={20} /> : <span style={{ fontSize: 14, fontWeight: 700, color: "var(--blue)" }}>{repoSizeData[0]?.name?.split("/")[1] ?? "—"}</span>}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                LARGEST
+              </span>
+              {loading ? (
+                <Skel w={70} h={20} />
+              ) : (
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "var(--blue)",
+                  }}
+                >
+                  {repoSizeData[0]?.name?.split("/")[1] ?? "—"}
+                </span>
+              )}
             </div>
-            {loading
-              ? <Skel w="100%" h={55} />
-              : <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 55 }}>
-                  {repoSizeData.map((r, i) => (
-                    <div key={i} title={`${r.name}: ${r.size}KB`} style={{
-                      flex: 1, borderRadius: "2px 2px 0 0", minHeight: 3,
+            {loading ? (
+              <Skel w="100%" h={55} />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: 3,
+                  height: 55,
+                }}
+              >
+                {repoSizeData.map((r, i) => (
+                  <div
+                    key={i}
+                    title={`${r.name}: ${r.size}KB`}
+                    style={{
+                      flex: 1,
+                      borderRadius: "2px 2px 0 0",
+                      minHeight: 3,
                       height: `${Math.max(6, (r.size / maxSize) * 100)}%`,
-                      background: `hsl(${200 + i * 5}, 70%, 55%)`, opacity: 0.75,
-                    }} />
-                  ))}
-                </div>
-            }
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 9, color: "var(--text3)" }}>largest</span>
-              <span style={{ fontSize: 9, color: "var(--text3)" }}>smallest</span>
+                      background: `hsl(${200 + i * 5}, 70%, 55%)`,
+                      opacity: 0.75,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 4,
+              }}
+            >
+              <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                largest
+              </span>
+              <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                smallest
+              </span>
             </div>
           </div>
         </div>
@@ -1333,25 +2137,67 @@ function OverviewTab() {
         <div className="col-3 panel">
           <div className="panel-header">
             <span className="panel-title">Stars &amp; Forks · per repo</span>
-            <span className="panel-meta">{loading ? "..." : `${totalStars} stars · ${totalForks} forks`}</span>
+            <span className="panel-meta">
+              {loading ? "..." : `${totalStars} stars · ${totalForks} forks`}
+            </span>
           </div>
           <div style={{ padding: "10px 14px 6px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-              <span style={{ fontSize: 9, color: "var(--text3)" }}>TOTAL STARS</span>
-              {loading ? <Skel w={40} h={20} /> : <span style={{ fontSize: 20, fontWeight: 700, color: "var(--yellow)", letterSpacing: "-0.02em" }}>★ {totalStars}</span>}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ fontSize: 9, color: "var(--text3)" }}>
+                TOTAL STARS
+              </span>
+              {loading ? (
+                <Skel w={40} h={20} />
+              ) : (
+                <span
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: "var(--yellow)",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  ★ {totalStars}
+                </span>
+              )}
             </div>
-            {loading
-              ? <Skel w="100%" h={55} />
-              : <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 55 }}>
-                  {[...repos].sort((a,b) => b.stargazers_count - a.stargazers_count).slice(0, 20).map((r, i) => (
-                    <div key={i} title={`${r.name}: ★${r.stargazers_count}`} style={{
-                      flex: 1, borderRadius: "2px 2px 0 0", minHeight: 3,
-                      height: `${Math.max(6, (r.stargazers_count / Math.max(1, repos[0]?.stargazers_count)) * 100)}%`,
-                      background: "var(--yellow)", opacity: 0.5 + (i === 0 ? 0.5 : 0.05),
-                    }} />
+            {loading ? (
+              <Skel w="100%" h={55} />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: 3,
+                  height: 55,
+                }}
+              >
+                {[...repos]
+                  .sort((a, b) => b.stargazers_count - a.stargazers_count)
+                  .slice(0, 20)
+                  .map((r, i) => (
+                    <div
+                      key={i}
+                      title={`${r.name}: ★${r.stargazers_count}`}
+                      style={{
+                        flex: 1,
+                        borderRadius: "2px 2px 0 0",
+                        minHeight: 3,
+                        height: `${Math.max(6, (r.stargazers_count / Math.max(1, repos[0]?.stargazers_count)) * 100)}%`,
+                        background: "var(--yellow)",
+                        opacity: 0.5 + (i === 0 ? 0.5 : 0.05),
+                      }}
+                    />
                   ))}
-                </div>
-            }
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1362,44 +2208,125 @@ function OverviewTab() {
         <div className="col-2 panel">
           <div className="panel-header">
             <span className="panel-title">Service Health</span>
-            <span className="panel-meta">{svcLoading ? "..." : `${ghServices.filter(s=>s.status==="running").length}/${ghServices.length} running`}</span>
+            <span className="panel-meta">
+              {svcLoading
+                ? "..."
+                : `${ghServices.filter((s) => s.status === "running").length}/${ghServices.length} running`}
+            </span>
           </div>
           <div style={{ padding: "0 14px" }}>
             {svcLoading
-              ? Array.from({length: 3}, (_, i) => (
-                  <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 6 }}>
+              ? Array.from({ length: 3 }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: "10px 0",
+                      borderBottom: "1px solid var(--border)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                    }}
+                  >
                     <Skel w="60%" h={12} /> <Skel w="40%" h={10} />
                   </div>
                 ))
               : ghServices.map((s, i) => (
-                  <div key={s.id} style={{
-                    display: "grid", gridTemplateColumns: "1fr 80px 1fr 1fr",
-                    alignItems: "center", gap: 10,
-                    padding: "9px 0",
-                    borderBottom: i < ghServices.length - 1 ? "1px solid var(--border)" : "none",
-                  }}>
+                  <div
+                    key={s.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 80px 1fr 1fr",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "9px 0",
+                      borderBottom:
+                        i < ghServices.length - 1
+                          ? "1px solid var(--border)"
+                          : "none",
+                    }}
+                  >
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text)" }}>
-                        <span className={`status-dot ${statusDot(s.status)}`} />{s.name}
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--text)",
+                        }}
+                      >
+                        <span className={`status-dot ${statusDot(s.status)}`} />
+                        {s.name}
                       </div>
-                      <div style={{ fontSize: 9, color: "var(--text3)", marginTop: 1 }}>{timeAgo(s.pushed_at)}</div>
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "var(--text3)",
+                          marginTop: 1,
+                        }}
+                      >
+                        {timeAgo(s.pushed_at)}
+                      </div>
                     </div>
-                    <span className={`badge ${badgeClass(s.status)}`}>{s.status}</span>
+                    <span className={`badge ${badgeClass(s.status)}`}>
+                      {s.status}
+                    </span>
                     <div>
-                      <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 3 }}>cpu {s.cpu}%</div>
-                      <div style={{ height: 4, background: "var(--bg3)", borderRadius: 2, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${s.cpu}%`, background: gaugeColor(s.cpu), borderRadius: 2 }} />
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "var(--text3)",
+                          marginBottom: 3,
+                        }}
+                      >
+                        cpu {s.cpu}%
+                      </div>
+                      <div
+                        style={{
+                          height: 4,
+                          background: "var(--bg3)",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${s.cpu}%`,
+                            background: gaugeColor(s.cpu),
+                            borderRadius: 2,
+                          }}
+                        />
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 9, color: "var(--text3)", marginBottom: 3 }}>mem {s.mem}%</div>
-                      <div style={{ height: 4, background: "var(--bg3)", borderRadius: 2, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${s.mem}%`, background: gaugeColor(s.mem), borderRadius: 2 }} />
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "var(--text3)",
+                          marginBottom: 3,
+                        }}
+                      >
+                        mem {s.mem}%
+                      </div>
+                      <div
+                        style={{
+                          height: 4,
+                          background: "var(--bg3)",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${s.mem}%`,
+                            background: gaugeColor(s.mem),
+                            borderRadius: 2,
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
-                ))
-            }
+                ))}
           </div>
         </div>
 
@@ -1409,40 +2336,117 @@ function OverviewTab() {
             <span className="panel-title">Recent Activity</span>
             <span className="panel-meta">live from github events api</span>
           </div>
-          <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 2 }}>
+          <div
+            style={{
+              padding: "10px 14px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             {loading
-              ? Array.from({length: 5}, (_, i) => (
-                  <div key={i} style={{ padding: "8px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
+              ? Array.from({ length: 5 }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: "8px 10px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 5,
+                    }}
+                  >
                     <Skel w="80%" h={11} /> <Skel w="30%" h={9} />
                   </div>
                 ))
               : recentEvents.map((e, i) => (
-                  <div key={i} style={{
-                    display: "flex", gap: 10, alignItems: "flex-start",
-                    padding: "7px 10px",
-                    background: i === 0 ? "var(--bg2)" : "transparent",
-                    borderRadius: 3,
-                    borderLeft: `2px solid ${e.type === "PushEvent" ? "var(--green)" : e.type === "CreateEvent" ? "var(--blue)" : "var(--text3)"}`,
-                  }}>
-                    <span style={{ fontSize: 9, color: e.type === "PushEvent" ? "var(--green)" : "var(--blue)", flexShrink: 0, marginTop: 1, fontWeight: 600 }}>
-                      {e.type?.replace("Event","").toUpperCase().slice(0,4)}
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "flex-start",
+                      padding: "7px 10px",
+                      background: i === 0 ? "var(--bg2)" : "transparent",
+                      borderRadius: 3,
+                      borderLeft: `2px solid ${e.type === "PushEvent" ? "var(--green)" : e.type === "CreateEvent" ? "var(--blue)" : "var(--text3)"}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 9,
+                        color:
+                          e.type === "PushEvent"
+                            ? "var(--green)"
+                            : "var(--blue)",
+                        flexShrink: 0,
+                        marginTop: 1,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {e.type?.replace("Event", "").toUpperCase().slice(0, 4)}
                     </span>
-                    <span style={{ fontSize: 10, color: i === 0 ? "var(--text)" : "var(--text2)", lineHeight: 1.5 }}>{eventLabel(e)}</span>
-                    <span style={{ fontSize: 9, color: "var(--text3)", marginLeft: "auto", flexShrink: 0 }}>{timeAgo(e.created_at)}</span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        color: i === 0 ? "var(--text)" : "var(--text2)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {eventLabel(e)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        color: "var(--text3)",
+                        marginLeft: "auto",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {timeAgo(e.created_at)}
+                    </span>
                   </div>
-                ))
-            }
+                ))}
           </div>
           {/* stack snapshot */}
-          <div style={{ borderTop: "1px solid var(--border)", padding: "10px 14px" }}>
-            <div style={{ fontSize: 9, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>stack snapshot</div>
+          <div
+            style={{
+              borderTop: "1px solid var(--border)",
+              padding: "10px 14px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 9,
+                color: "var(--text3)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: 8,
+              }}
+            >
+              stack snapshot
+            </div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {loading
-                ? Array.from({length:6}, (_,i) => <Skel key={i} w={50} h={18} />)
-                : topLangs.map(([lang]) => (
-                    <span key={lang} style={{ fontSize: 9, fontWeight: 500, letterSpacing: "0.06em", color: "var(--cyan)", background: "#0a2228", border: "1px solid #1a4048", padding: "2px 7px", borderRadius: 2 }}>{lang}</span>
+                ? Array.from({ length: 6 }, (_, i) => (
+                    <Skel key={i} w={50} h={18} />
                   ))
-              }
+                : topLangs.map(([lang]) => (
+                    <span
+                      key={lang}
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 500,
+                        letterSpacing: "0.06em",
+                        color: "var(--cyan)",
+                        background: "#0a2228",
+                        border: "1px solid #1a4048",
+                        padding: "2px 7px",
+                        borderRadius: 2,
+                      }}
+                    >
+                      {lang}
+                    </span>
+                  ))}
             </div>
           </div>
         </div>
@@ -1456,19 +2460,31 @@ function ServicesTab() {
   const [sel, setSel] = useState(null);
   const { services, loading } = useServices();
 
-  if (loading) return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {Array.from({length: 3}, (_, i) => (
-        <div key={i} style={{ background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 3, padding: 14 }}>
-          <Skel w="40%" h={13} /><div style={{marginTop:8}}><Skel w="80%" h={10} /></div>
-        </div>
-      ))}
-    </div>
-  );
+  if (loading)
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {Array.from({ length: 3 }, (_, i) => (
+          <div
+            key={i}
+            style={{
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 3,
+              padding: 14,
+            }}
+          >
+            <Skel w="40%" h={13} />
+            <div style={{ marginTop: 8 }}>
+              <Skel w="80%" h={10} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
 
   return (
     <div className="services-grid">
-      {services.map(s => (
+      {services.map((s) => (
         <div
           key={s.id}
           className={`service-card ${sel === s.id ? "selected" : ""}`}
@@ -1480,18 +2496,31 @@ function ServicesTab() {
                 <span className={`status-dot ${statusDot(s.status)}`} />
                 {s.name}
               </div>
-              <div className="service-version">{s.version}{s.stars > 0 ? ` · ★${s.stars}` : ""}</div>
+              <div className="service-version">
+                {s.version}
+                {s.stars > 0 ? ` · ★${s.stars}` : ""}
+              </div>
             </div>
             <span className={`badge ${badgeClass(s.status)}`}>{s.status}</span>
           </div>
           <div className="service-desc">{s.description}</div>
           <div className="service-stack">
-            {s.stack.map(t => <span key={t} className="stack-tag">{t}</span>)}
+            {s.stack.map((t) => (
+              <span key={t} className="stack-tag">
+                {t}
+              </span>
+            ))}
           </div>
           <div className="service-metrics">
-            <div className="svc-metric">CPU<span className={s.cpu > 70 ? "val-red" : ""}>{s.cpu}%</span></div>
-            <div className="svc-metric">MEM<span className={s.mem > 80 ? "val-red" : ""}>{s.mem}%</span></div>
-            <div className="svc-metric">REQS<span>{s.requests.toLocaleString()}</span></div>
+            <div className="svc-metric">
+              CPU<span className={s.cpu > 70 ? "val-red" : ""}>{s.cpu}%</span>
+            </div>
+            <div className="svc-metric">
+              MEM<span className={s.mem > 80 ? "val-red" : ""}>{s.mem}%</span>
+            </div>
+            <div className="svc-metric">
+              REQS<span>{s.requests.toLocaleString()}</span>
+            </div>
           </div>
         </div>
       ))}
@@ -1505,7 +2534,8 @@ function LogsTab({ logs, onReload }) {
   const [filter, setFilter] = useState("ALL");
   const [spinning, setSpinning] = useState(false);
   const levels = ["ALL", "BOOT", "INFO", "WARN", "ERROR", "DEBUG"];
-  const filtered = filter === "ALL" ? logs : logs.filter(l => l.level === filter);
+  const filtered =
+    filter === "ALL" ? logs : logs.filter((l) => l.level === filter);
 
   const handleReload = () => {
     setSpinning(true);
@@ -1517,9 +2547,11 @@ function LogsTab({ logs, onReload }) {
   return (
     <div className="panel">
       <div className="panel-header">
-        <span className="panel-title">Log Stream · /var/log/andro/console.log</span>
+        <span className="panel-title">
+          Log Stream · /var/log/andro/console.log
+        </span>
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          {levels.map(lv => (
+          {levels.map((lv) => (
             <button
               key={lv}
               onClick={() => setFilter(lv)}
@@ -1534,9 +2566,18 @@ function LogsTab({ logs, onReload }) {
                 cursor: "pointer",
                 letterSpacing: "0.08em",
               }}
-            >{lv}</button>
+            >
+              {lv}
+            </button>
           ))}
-          <div style={{ width: 1, height: 14, background: "var(--border)", margin: "0 4px" }} />
+          <div
+            style={{
+              width: 1,
+              height: 14,
+              background: "var(--border)",
+              margin: "0 4px",
+            }}
+          />
           <button
             onClick={handleReload}
             title="Replay log stream"
@@ -1554,15 +2595,21 @@ function LogsTab({ logs, onReload }) {
               alignItems: "center",
               gap: 5,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "var(--blue2)"}
-            onMouseLeave={e => e.currentTarget.style.background = "none"}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "var(--blue2)")
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
           >
-            <span style={{
-              display: "inline-block",
-              animation: spinning ? "spin 0.7s linear infinite" : "none",
-              fontSize: 13,
-              lineHeight: 1,
-            }}>⟳</span>
+            <span
+              style={{
+                display: "inline-block",
+                animation: spinning ? "spin 0.7s linear infinite" : "none",
+                fontSize: 13,
+                lineHeight: 1,
+              }}
+            >
+              ⟳
+            </span>
             reload
           </button>
         </div>
@@ -1576,24 +2623,30 @@ function LogsTab({ logs, onReload }) {
 
 // ─── GRAPH TAB ───────────────────────────────────────────────────────────────
 
-
-
 // ─── ABOUT TAB ───────────────────────────────────────────────────────────────
 
 function AboutTab() {
   return (
     <div className="row">
       <div className="col-2 panel">
-        <div className="panel-header"><span className="panel-title">Engineer Profile</span></div>
+        <div className="panel-header">
+          <span className="panel-title">Engineer Profile</span>
+        </div>
         <div className="panel-body">
           {[
             ["name", "Rishabh Madhwal"],
-            ["codename", <span style={{color:"var(--cyan)"}}>Andro</span>],
+            ["codename", <span style={{ color: "var(--cyan)" }}>Andro</span>],
             ["role", "Backend Engineer"],
             ["focus", "Backend Architecture · Systems Design"],
             ["target", "Backend Engineering Roles · 2026"],
             ["location", "Ghaziabad, Uttar Pradesh, IN"],
-            ["github", <a href="https://github.com/androdotdev">github.com/androdotdev</a>],
+            [
+              "github",
+              <a href="https://github.com/androdotdev">
+                github.com/androdotdev
+              </a>,
+            ],
+            ["blogs", <a href="/blogs">rishabhmadhwal.qzz.io/blogs</a>],
             ["approach", "Feynman-style public explanation"],
           ].map(([k, v]) => (
             <div key={k} className="about-row">
@@ -1604,7 +2657,9 @@ function AboutTab() {
         </div>
       </div>
       <div className="col-2 panel">
-        <div className="panel-header"><span className="panel-title">System Info</span></div>
+        <div className="panel-header">
+          <span className="panel-title">System Info</span>
+        </div>
         <div className="panel-body">
           {[
             ["console", "Rishabh Madhwal · System Console"],
@@ -1612,7 +2667,7 @@ function AboutTab() {
             ["runtime", "React 18"],
             ["theme", "Grafana-inspired dark"],
             ["uptime", "14d 6h 22m"],
-            ["services", `${appServices.length} repos`],
+            ["services", "cli-agent · json-flow · School-Management"],
             ["log_entries", `${LOGS.length} entries`],
             ["graph", "lang · tool · infra nodes"],
           ].map(([k, v]) => (
@@ -1640,7 +2695,7 @@ export default function App() {
     const tick = () => {
       if (i < LOGS.length) {
         const entry = LOGS[i];
-        setStreamedLogs(prev => [...prev, entry]);
+        setStreamedLogs((prev) => [...prev, entry]);
         i++;
         setTimeout(tick, 180 + Math.random() * 120);
       }
@@ -1670,7 +2725,16 @@ export default function App() {
           <div className="topbar-left">
             <span className="topbar-logo">⬡ Rishabh</span>
             <span className="topbar-sep">/</span>
-            <span className="topbar-codename" style={{ fontSize: 10, color: "var(--cyan)", letterSpacing: "0.08em" }}>andro</span>
+            <span
+              className="topbar-codename"
+              style={{
+                fontSize: 10,
+                color: "var(--cyan)",
+                letterSpacing: "0.08em",
+              }}
+            >
+              andro
+            </span>
             <span className="topbar-sep">/</span>
             <span className="topbar-route">system-console</span>
             <span className="topbar-sep">/</span>
@@ -1679,7 +2743,9 @@ export default function App() {
           <div className="topbar-right">
             <span>
               <span className="status-dot dot-green" />
-              <span style={{ fontSize: 10, color: "var(--text2)" }}>sys nominal</span>
+              <span style={{ fontSize: 10, color: "var(--text2)" }}>
+                sys nominal
+              </span>
             </span>
             <Clock />
           </div>
@@ -1687,16 +2753,25 @@ export default function App() {
 
         {/* nav tabs */}
         <div className="nav-tabs">
-          {TABS.map(t => (
+          {TABS.map((t) => (
             <button
               key={t.id}
               className={`nav-tab ${tab === t.id ? "active" : ""}`}
               onClick={() => setTab(t.id)}
-            >{t.label}</button>
+            >
+              {t.label}
+            </button>
           ))}
           <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: "var(--text3)", letterSpacing: "0.08em" }}>
-            {appServices.filter(s => s.status === "running").length}/{appServices.length} services ·{" "}
+          <span
+            style={{
+              fontSize: 10,
+              color: "var(--text3)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            {appServices.filter((s) => s.status === "running").length}/
+            {appServices.length} services ·{" "}
             <span style={{ color: "var(--green)" }}>●</span> healthy
           </span>
         </div>
@@ -1706,7 +2781,9 @@ export default function App() {
           {tab === "overview" && <OverviewTab />}
           {tab === "services" && <ServicesTab />}
           {tab === "graph" && <GraphTab />}
-          {tab === "logs" && <LogsTab logs={streamedLogs} onReload={startStream} />}
+          {tab === "logs" && (
+            <LogsTab logs={streamedLogs} onReload={startStream} />
+          )}
           {tab === "about" && <AboutTab />}
         </div>
       </div>
