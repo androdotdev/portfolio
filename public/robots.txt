@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rishabhmadwal.qzz.io/sitemap.xml
