@@ -1,0 +1,340 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap");
+
+.blog-root *,
+.blog-root *::before,
+.blog-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-root {
+  min-height: 100vh;
+  background: #080d14;
+  color: #c9d1e0;
+  font-family: "Lora", Georgia, serif;
+}
+
+/* ── HEADER ── */
+.blog-header {
+  border-bottom: 1px solid #1f2d45;
+  padding: 0 40px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: #080d14;
+  z-index: 10;
+}
+.blog-header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.blog-wordmark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4da6ff;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.blog-wordmark span {
+  color: #3de8d4;
+}
+.blog-back {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: #3d5070;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  transition: color 0.15s;
+}
+.blog-back:hover {
+  color: #4da6ff;
+}
+
+/* ── LIST PAGE ── */
+.blog-list {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 60px 20px 80px;
+}
+.blog-list-heading {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3d5070;
+  margin-bottom: 48px;
+}
+/* ── POST CARD ── */
+.post-card-list {
+  display: flex;
+  flex-direction: column;
+}
+.post-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid #111820;
+  border-left: 2px solid transparent;
+  padding-left: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    border-left-color 0.2s,
+    padding-left 0.2s;
+  will-change: opacity, transform;
+}
+.post-card:first-child {
+  border-top: 1px solid #111820;
+}
+.post-card:hover {
+  border-left-color: #4da6ff;
+  padding-left: 12px;
+}
+.post-card:hover .post-card-title {
+  color: #4da6ff;
+}
+.post-card:hover .post-card-arrow {
+  color: #4da6ff;
+  transform: translateX(4px);
+}
+.post-card-index {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: #1f2d45;
+  flex-shrink: 0;
+  padding-top: 4px;
+  letter-spacing: 0.06em;
+  min-width: 24px;
+}
+.post-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.post-card-title {
+  font-family: "Lora", Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #c9d1e0;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  transition: color 0.15s;
+}
+.post-card-excerpt {
+  font-size: 14px;
+  color: #4a6080;
+  line-height: 1.7;
+}
+.post-card-arrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  color: #1f2d45;
+  flex-shrink: 0;
+  padding-top: 2px;
+  transition:
+    color 0.15s,
+    transform 0.15s;
+}
+
+/* ── POST PAGE ── */
+.blog-post {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 60px 20px 120px;
+}
+.blog-post-heading {
+  font-family: "Lora", Georgia, serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: #e0e8f0;
+  line-height: 1.25;
+  margin-bottom: 48px;
+  letter-spacing: -0.01em;
+}
+
+/* ── POST BODY TYPOGRAPHY ── */
+.blog-post-body p {
+  font-size: 16px;
+  line-height: 1.85;
+  color: #8a9ab8;
+  margin-bottom: 24px;
+}
+.blog-post-body h1,
+.blog-post-body h2,
+.blog-post-body h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  color: #c9d1e0;
+  margin: 40px 0 16px;
+  letter-spacing: 0.02em;
+}
+.blog-post-body h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.blog-post-body h3 {
+  font-size: 13px;
+  color: #4da6ff;
+}
+.blog-post-body strong {
+  color: #c9d1e0;
+  font-weight: 600;
+}
+.blog-post-body em {
+  color: #8a9ab8;
+  font-style: italic;
+}
+.blog-post-body a {
+  color: #4da6ff;
+  text-decoration: none;
+  border-bottom: 1px solid #1f2d45;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+.blog-post-body a:hover {
+  color: #3de8d4;
+  border-bottom-color: #3de8d4;
+}
+
+/* ── LISTS ── */
+.blog-post-body ul,
+.blog-post-body ol {
+  margin: 0 0 24px 0;
+  padding: 0;
+  list-style: none;
+}
+.blog-post-body li {
+  font-size: 16px;
+  line-height: 1.85;
+  color: #8a9ab8;
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.blog-post-body ul li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #1f2d45;
+}
+.blog-post-body ol {
+  counter-reset: ol-counter;
+}
+.blog-post-body ol li::before {
+  counter-increment: ol-counter;
+  content: counter(ol-counter) ".";
+  position: absolute;
+  left: 0;
+  color: #3d5070;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+/* ── CODE ── */
+.blog-post-body code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: #3de8d4;
+  background: #0d1a2e;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #1f2d45;
+}
+.blog-post-body pre {
+  background: #0a0f18;
+  border: 1px solid #1f2d45;
+  border-left: 3px solid #4da6ff;
+  border-radius: 4px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 24px 0;
+}
+.blog-post-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c9d1e0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ── BLOCKQUOTE ── */
+.blog-post-body blockquote {
+  border-left: 3px solid #1f2d45;
+  margin: 24px 0;
+  padding: 4px 20px;
+  color: #4a6080;
+  font-style: italic;
+}
+
+/* ── HR ── */
+.blog-post-body hr {
+  border: none;
+  border-top: 1px solid #111820;
+  margin: 40px 0;
+}
+
+/* ── TABLE ── */
+.blog-post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.blog-post-body th {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3d5070;
+  border-bottom: 1px solid #1f2d45;
+  padding: 8px 12px;
+  text-align: left;
+}
+.blog-post-body td {
+  color: #8a9ab8;
+  border-bottom: 1px solid #111820;
+  padding: 8px 12px;
+}
+
+/* ── 404 ── */
+.blog-404 {
+  max-width: 680px;
+  margin: 80px auto;
+  padding: 0 20px;
+  font-family: "JetBrains Mono", monospace;
+  color: #3d5070;
+  font-size: 12px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .blog-header {
+    padding: 0 16px;
+  }
+  .blog-list {
+    padding: 40px 16px 60px;
+  }
+  .blog-post {
+    padding: 40px 16px 80px;
+  }
+  .blog-post-heading {
+    font-size: 24px;
+  }
+  .blog-post-body p {
+    font-size: 15px;
+  }
+  .blog-post-body li {
+    font-size: 15px;
+  }
+}

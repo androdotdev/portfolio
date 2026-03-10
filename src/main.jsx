@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from "./components/Androsystemconsole.jsx";
+import App from "./App.jsx";
 import { BlogList, BlogPost } from "./blog/Blog.jsx";
 
 // global reset — prevents white flash/padding on all routes

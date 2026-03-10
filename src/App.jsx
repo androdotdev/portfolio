@@ -1,101 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-// ─── DATA LAYER ───────────────────────────────────────────────────────────────
-
-const REAL_REPOS = ["cli-agent", "json-flow", "School-Management"];
-
-const IDEA_SERVICES = []; // no fake entries
-
-function useServices() {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const results = await Promise.all(
-          REAL_REPOS.map((name) =>
-            Promise.all([
-              window
-                .fetch(`https://api.github.com/repos/androdotdev/${name}`, {
-                  headers: { Accept: "application/vnd.github+json" },
-                })
-                .then((r) => r.json()),
-              window
-                .fetch(
-                  `https://api.github.com/repos/androdotdev/${name}/languages`,
-                  {
-                    headers: { Accept: "application/vnd.github+json" },
-                  },
-                )
-                .then((r) => r.json()),
-            ]),
-          ),
-        );
-
-        if (cancelled) return;
-
-        const svcs = results.map(([repo, langs]) => {
-          const daysSincePush = Math.floor(
-            (Date.now() - new Date(repo.pushed_at)) / 86400000,
-          );
-          const daysSinceCreate = Math.floor(
-            (Date.now() - new Date(repo.created_at)) / 86400000,
-          );
-          const status = daysSincePush < 30 ? "running" : "experimental";
-          const uptimeDays = daysSinceCreate;
-          const stack = [
-            ...Object.keys(langs || {}).slice(0, 3),
-            ...(repo.topics || []).slice(0, 3),
-          ].filter(Boolean);
-
-          // simulate cpu/mem/requests for console aesthetic
-          const seed = repo.id % 100;
-          const cpu = status === "running" ? 10 + (seed % 40) : 0;
-          const mem = status === "running" ? 20 + (seed % 50) : 0;
-          const reqs =
-            status === "running"
-              ? repo.stargazers_count * 100 + repo.forks_count * 50 + seed * 7
-              : 0;
-
-          return {
-            id: repo.name,
-            name: repo.name,
-            status,
-            uptime: status === "running" ? `${uptimeDays}d` : "—",
-            version: repo.topics?.find((t) => t.startsWith("v")) || `v—`,
-            description: repo.description || "No description provided.",
-            stack: stack.length > 0 ? stack : [repo.language].filter(Boolean),
-            cpu,
-            mem,
-            requests: reqs,
-            port: null,
-            stars: repo.stargazers_count,
-            forks: repo.forks_count,
-            url: repo.html_url,
-            pushed_at: repo.pushed_at,
-          };
-        });
-
-        setServices(svcs);
-      } catch (err) {
-        console.error("useServices error:", err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { services, loading };
-}
-
-// keep SERVICES as empty array — components will use useServices() hook
-const SERVICES = [];
+import { useGitHub, useServices, useStackGraph } from "./hooks";
 
 const LOGS = [
   {
@@ -841,52 +745,6 @@ function buildGraphFromRepos(repos, allLanguages) {
   return { nodes, edges };
 }
 
-function useStackGraph(repos) {
-  const [graph, setGraph] = useState({ nodes: [], edges: [], loading: true });
-
-  useEffect(() => {
-    if (!repos || repos.length === 0) return;
-    let cancelled = false;
-
-    const loadLangs = async () => {
-      try {
-        // fetch languages for each repo in parallel (cap at 20 repos)
-        const slice = repos.slice(0, 20);
-        const results = await Promise.all(
-          slice.map((r) =>
-            window
-              .fetch(
-                `https://api.github.com/repos/androdotdev/${r.name}/languages`,
-                {
-                  headers: { Accept: "application/vnd.github+json" },
-                },
-              )
-              .then((res) => res.json())
-              .then((data) => ({ name: r.name, langs: data })),
-          ),
-        );
-        if (cancelled) return;
-        const allLanguages = {};
-        results.forEach(({ name, langs }) => {
-          allLanguages[name] = Array.isArray(langs) ? {} : langs;
-        });
-        const { nodes, edges } = buildGraphFromRepos(slice, allLanguages);
-        setGraph({ nodes, edges, loading: false });
-      } catch (err) {
-        console.error("stack graph error:", err);
-        if (!cancelled) setGraph((g) => ({ ...g, loading: false }));
-      }
-    };
-
-    loadLangs();
-    return () => {
-      cancelled = true;
-    };
-  }, [repos.length]);
-
-  return graph;
-}
-
 function TechStackGraph({ nodes, edges }) {
   const [hovered, setHovered] = useState(null);
   const [tooltip, setTooltip] = useState({ x: 0, y: 0 });
@@ -1450,64 +1308,6 @@ function Clock() {
       {t.toISOString().replace("T", " ").slice(0, 19)} UTC
     </span>
   );
-}
-
-// ─── GITHUB HOOK ─────────────────────────────────────────────────────────────
-
-function useGitHub(username) {
-  const [data, setData] = useState({
-    user: null,
-    repos: [],
-    events: [],
-    loading: true,
-    error: null,
-    raw: null,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadAll = async () => {
-      try {
-        const gh = (path) =>
-          window.fetch(`https://api.github.com${path}`, {
-            headers: { Accept: "application/vnd.github+json" },
-          });
-        const [uRes, rRes, eRes] = await Promise.all([
-          gh(`/users/${username}`),
-          gh(`/users/${username}/repos?per_page=100&sort=pushed`),
-          gh(`/users/${username}/events?per_page=100`),
-        ]);
-        const raw = {
-          uStatus: uRes.status,
-          rStatus: rRes.status,
-          eStatus: eRes.status,
-        };
-        const [user, repos, events] = await Promise.all([
-          uRes.json(),
-          rRes.json(),
-          eRes.json(),
-        ]);
-        if (!cancelled)
-          setData({
-            user: user?.login ? user : null,
-            repos: Array.isArray(repos) ? repos : [],
-            events: Array.isArray(events) ? events : [],
-            loading: false,
-            error: user?.message || null,
-            raw,
-          });
-      } catch (err) {
-        if (!cancelled)
-          setData((d) => ({ ...d, loading: false, error: err.message }));
-      }
-    };
-    loadAll();
-    return () => {
-      cancelled = true;
-    };
-  }, [username]);
-
-  return data;
 }
 
 // ─── SKELETON ─────────────────────────────────────────────────────────────────
@@ -2646,7 +2446,7 @@ function AboutTab() {
                 github.com/androdotdev
               </a>,
             ],
-            ["blogs", <a href="/blogs">rishabhmadhwal.qzz.io/blogs</a>],
+            ["blogs", <a href="/blog">rishabhmadhwal.qzz.io/blog</a>],
             ["approach", "Feynman-style public explanation"],
           ].map(([k, v]) => (
             <div key={k} className="about-row">
