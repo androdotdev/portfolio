@@ -16,7 +16,9 @@ export default function Win({ id, scene, title, children }: { id: string; scene:
       trigger: bar.current!, type: "x,y",
       onPress() { win.current!.parentElement!.style.zIndex = String(++z); },
     });
-    return () => d.kill();
+    return () => {
+      d.kill();
+    };
   }, []);
 
   return (
