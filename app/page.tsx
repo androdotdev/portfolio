@@ -9,12 +9,12 @@ import Rain from "@/components/Rain";
 import Win from "@/components/Win";
 
 const projects = [
-  { name: "Cardfoi", href: "https://carderfoi.vercel.app", text: "One shareable page for your skills, projects and links. Built to take spiky, read-heavy traffic.", tags: ["Next.js", "Neon", "Drizzle", "Better Auth"] },
-  { name: "Relay", href: "https://relay.qzz.io", text: "Static HTML hosting with a CLI, an MCP server and a web app.", tags: ["Bun", "Next.js", "Drizzle", "MCP"] },
-  { name: "JSON Flow", href: "https://json-flow-client.vercel.app", text: "A renderer-agnostic JSON diagram compiler. Diagrams as code, with a swappable renderer.", tags: ["Zod", "Cytoscape", "Monaco"] },
-  { name: "lyceum", href: "https://lyceum-cli.vercel.app", text: "A terminal-first Socratic coding tutor that runs a multi-agent LLM pipeline.", tags: ["TypeScript", "Agents", "TUI"] },
-  { name: "PollForge", href: "https://pollforge-app.vercel.app", text: "An online polling app with live results.", tags: ["Next.js", "Vercel"] },
-  { name: "CLai", href: "https://github.com/androdotdev", text: "A Chrome extension that writes cover letters. Live on the Web Store.", tags: ["Chrome extension"] },
+  { name: "Cardfoi", href: "https://cardfoi.vercel.app/", text: "One shareable page for your skills, projects and links. Built to take spiky, read-heavy traffic.", tags: ["Next.js", "Neon", "Drizzle", "Better Auth"] },
+  { name: "PostHTML", href: "https://posthtml.vercel.app/", text: "Static HTML hosting with a CLI, an MCP server and a web app.", tags: ["Bun", "Next.js", "Drizzle", "MCP"] },
+  { name: "JSON Flow", href: "https://json-flow-client.vercel.app/", text: "A renderer-agnostic JSON diagram compiler. Diagrams as code, with a swappable renderer.", tags: ["Zod", "Cytoscape", "Monaco"] },
+  { name: "lyceum", href: "https://lyceum-cli.vercel.app/", text: "A terminal-first Socratic coding tutor that runs a multi-agent LLM pipeline.", tags: ["TypeScript", "Agents", "TUI"] },
+  { name: "PollForge", href: "https://pollforge-app.vercel.app/", text: "An online polling app with live results.", tags: ["Next.js", "Vercel"] },
+  { name: "CLai", href: "https://chromewebstore.google.com/detail/clai-ai-cover-letters/coihpnhcickicgiklfpbcgehpaaakhoc", text: "A Chrome extension that writes cover letters. Live on the Web Store.", tags: ["Chrome extension"] },
 ];
 
 export default function Page() {
